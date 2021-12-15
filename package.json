@@ -1,0 +1,38 @@
+{
+  "name": "vue-stability-table",
+  "version": "1.0.1",
+  "description": "Stability table for large amount of data display",
+  "author": {
+    "name": "huangriya",
+    "url": "https://github.com/huangriya",
+    "email": "huangriya@163.com"
+  },
+  "repository": "https://github.com/huangriya/vue-stability-table.git",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-stability-table.umd.js",
+  "module": "./dist/vue-stability-table.es.js",
+  "style": "./dist/style.css",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "vue-agile-scrollbar": "^1.0.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^1.10.2",
+    "less": "^4.1.2",
+    "vite": "^2.7.0",
+    "vite-plugin-vue2": "^1.9.0",
+    "vue-template-compiler": "^2.6.14"
+  },
+  "engines": {
+    "node": ">=14",
+    "npm": ">=6.10"
+  }
+}
