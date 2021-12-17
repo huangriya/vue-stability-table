@@ -77,13 +77,12 @@ class Virtual {
       if (scrollTop < this.opts.viewHeight) {
         start = 0
         end = 30
-      } else if (virtualBottom.offsetTop - scrollTop < this.opts.viewHeight && this.rowEnd < this.opts.rowsNum) {
+      } else if (virtualBottom.offsetTop - scrollTop < this.opts.viewHeight) {
         start = this.rowEnd - 10
         end = start + 30
         if (end > this.opts.rowsNum) {
           end = this.opts.rowsNum
         }
-        
         if (this.opts.expandSize) {
           for (const key in expand) {
             if (key < start) {

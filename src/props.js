@@ -72,15 +72,16 @@ export default {
     default: 50
   },
 
-  // 拓展行平均高度
+  // 拓展行平均高度，虚拟滚动时用到
   expandSize: {
     type: Number,
     default: null
   },
 
+  // 单列平均宽度，虚拟滚动时用到
   colSize: {
     type: Number,
-    default: 50
+    default: 80
   },
 
   // 自定义空数据时的显示内容

@@ -8,8 +8,8 @@ export default defineConfig({
   plugins: [createVuePlugin()],
   build: {
     lib: {
-      entry: resolve(__dirname, "src/vueAgileScrollbar.vue"),
-      name: "vue-agile-scrollbar"
+      entry: resolve(__dirname, "src/stabilityTable.vue"),
+      name: "vue-stability-table"
     }
   }
 })
