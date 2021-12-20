@@ -11,7 +11,7 @@ export const columns = {
 
   // 是否可拖动调整宽度，此时 width 必须是 number 类型
   resizable: false,
-  width: null,
+  width: 100,
   minWidth: 80,
   maxWidth: null,
 
@@ -63,13 +63,13 @@ export default {
   // 表格行 key 的取值，可以是字符串或一个函数
   rowKey: {
     type: String,
-    default: ''
+    default: 'id'
   },
 
   // 单行平均高度，虚拟滚动时用到
   rowSize: {
     type: Number,
-    default: 50
+    default: 40
   },
 
   // 拓展行平均高度，虚拟滚动时用到
@@ -81,7 +81,7 @@ export default {
   // 单列平均宽度，虚拟滚动时用到
   colSize: {
     type: Number,
-    default: 80
+    default: 100
   },
 
   // 自定义空数据时的显示内容

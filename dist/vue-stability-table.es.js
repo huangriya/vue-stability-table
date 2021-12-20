@@ -5,7 +5,7 @@ const columns = {
   fixed: false,
   key: "",
   resizable: false,
-  width: null,
+  width: 100,
   minWidth: 80,
   maxWidth: null,
   formatter: null
@@ -39,11 +39,11 @@ var props$1 = {
   },
   rowKey: {
     type: String,
-    default: ""
+    default: "id"
   },
   rowSize: {
     type: Number,
-    default: 50
+    default: 40
   },
   expandSize: {
     type: Number,
@@ -51,7 +51,7 @@ var props$1 = {
   },
   colSize: {
     type: Number,
-    default: 80
+    default: 100
   },
   emptyText: {
     type: String,
@@ -407,60 +407,62 @@ class Virtual {
     this.leftDistance = 0;
     this.rightDistance = 0;
     this.scrollTop = 0;
+    this.scrollLeft = 0;
   }
   getRowsRegion(scrollTop, expand, virtualBottom, virtualTop) {
     if (this.opts.rowsNum <= 60) {
       return null;
     }
-    if (!scrollTop || Math.abs(scrollTop - this.scrollTop) > this.opts.rowSize) {
-      this.scrollTop = scrollTop;
-      let start, end;
-      let expandDistance = {
-        top: 0,
-        middle: 0,
-        bottom: 0
+    let start, end;
+    let expandDistance = {
+      top: 0,
+      middle: 0,
+      bottom: 0
+    };
+    if (scrollTop < this.opts.viewHeight) {
+      start = 0;
+      end = 30;
+    } else if (virtualBottom.offsetTop - scrollTop < this.opts.viewHeight) {
+      start = this.rowEnd - 15;
+      end = start + 30;
+      if (end > this.opts.rowsNum) {
+        end = this.opts.rowsNum;
+      }
+      if (start < this.rowStart) {
+        start = void 0;
+        end = void 0;
+      }
+      if (expand) {
+        for (const key in expand) {
+          if (key < start) {
+            expandDistance.top += expand[key];
+          }
+        }
+      }
+    } else if (virtualTop && scrollTop - virtualTop.clientHeight < 100) {
+      start = this.rowStart - 15;
+      end = this.rowEnd - 15;
+      if (expand) {
+        for (const key in expand) {
+          if (key < start) {
+            expandDistance.top += expand[key];
+          } else if (key > end) {
+            expandDistance.bottom += expand[key];
+          }
+        }
+      }
+    }
+    if (start !== void 0 && end !== void 0 && start !== this.rowStart && end !== this.rowEnd) {
+      this.rowStart = start;
+      this.rowEnd = end;
+      this.topDistance = this.rowStart * this.opts.rowSize + expandDistance.top;
+      this.bottomDistance = (this.opts.rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom;
+      return {
+        start: this.rowStart,
+        end: this.rowEnd,
+        top: this.topDistance,
+        bottom: this.bottomDistance
       };
-      if (scrollTop < this.opts.viewHeight) {
-        start = 0;
-        end = 30;
-      } else if (virtualBottom.offsetTop - scrollTop < this.opts.viewHeight) {
-        start = this.rowEnd - 10;
-        end = start + 30;
-        if (end > this.opts.rowsNum) {
-          end = this.opts.rowsNum;
-        }
-        if (this.opts.expandSize) {
-          for (const key in expand) {
-            if (key < start) {
-              expandDistance.top += this.opts.expandSize;
-            }
-          }
-        }
-      } else if (virtualTop && scrollTop - virtualTop.clientHeight < 100) {
-        start = this.rowStart - 20;
-        end = this.rowEnd - 20;
-        if (this.opts.expandSize) {
-          for (const key in expand) {
-            if (key < start) {
-              expandDistance.top += this.opts.expandSize;
-            } else if (key > end) {
-              expandDistance.bottom += this.opts.expandSize;
-            }
-          }
-        }
-      }
-      if (start !== void 0 && end !== void 0 && start !== this.rowStart && end !== this.rowEnd) {
-        this.rowStart = start;
-        this.rowEnd = end;
-        this.topDistance = this.rowStart * this.opts.rowSize + expandDistance.top;
-        this.bottomDistance = (this.opts.rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom;
-        return {
-          start: this.rowStart,
-          end: this.rowEnd,
-          top: this.topDistance,
-          bottom: this.bottomDistance
-        };
-      }
     }
   }
   getColRegion(scrollLeft) {
@@ -483,6 +485,7 @@ class Virtual {
         isLast = true;
       }
     }
+    this.scrollLeft = scrollLeft;
     if ((start !== this.colStart || end !== this.colEnd) && end - this.colEnd > 5 || this.colEnd - end > 5 || isLast) {
       this.colStart = start;
       this.colEnd = end;
@@ -564,33 +567,39 @@ var render = function() {
     "not-sticky-left": _vm.stickyType === "left",
     "not-sticky-right": _vm.stickyType === "right"
   }, attrs: { "cellpadding": "0", "cellspacing": "0" } }, [_c("thead", { ref: "tabelHead", staticClass: "stability-wrapper-table-head" }, [_c("tr", [_vm._l(_vm.head.left, function(item, i) {
-    return _c("th", { key: item.prop, class: { "sticky-left": i === _vm.head.left.length - 1 }, style: _vm.getSticky(item, i), attrs: { "sticky": "left", "title": item.label } }, [_c("div", { staticClass: "stability-table-cell cell-th", class: _vm.getCellClass(item) }, [_vm._v(" " + _vm._s(item.label) + " ")]), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
+    return _c("th", { key: item.prop, class: { "sticky-left": i === _vm.head.left.length - 1 }, style: _vm.getSticky(item, i), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-th", class: _vm.getCellClass(item) }, [_vm._t("headerText", function() {
+      return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(_vm._s(item.label))])];
+    }, { "column": item })], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
   }), _vm.virtualScrollX ? _c("td", { style: { "min-width": _vm.virtualScrollX.left + "px" } }) : _vm._e(), _vm._l(_vm.cols, function(item) {
-    return _c("th", { key: item.prop, style: _vm.getThStyle(item) }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._v(" " + _vm._s(item.label) + " ")]), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
+    return _c("th", { key: item.prop, style: _vm.getThStyle(item) }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("headerText", function() {
+      return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(_vm._s(item.label))])];
+    }, { "column": item })], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
   }), _vm.virtualScrollX ? _c("td", { style: { "min-width": _vm.virtualScrollX.right + "px" } }) : _vm._e(), _vm._l(_vm.head.right, function(item, i) {
-    return _c("th", { key: item.prop, class: { "sticky-right": i === 0 }, style: _vm.getSticky(item, _vm.head.right.length - 1 - i), attrs: { "sticky": "right", "title": item.label } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._v(" " + _vm._s(item.label) + " ")]), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
+    return _c("th", { key: item.prop, class: { "sticky-right": i === 0 }, style: _vm.getSticky(item, _vm.head.right.length - 1 - i), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("headerText", function() {
+      return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(_vm._s(item.label))])];
+    }, { "column": item })], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
   })], 2)]), _c("tbody", [_vm.virtualScrollY ? _c("tr", { ref: "virtualTop", style: { height: _vm.virtualScrollY.top + "px" } }) : _vm._e(), _vm._l(_vm.rows, function(row, i) {
-    return [_c("tr", { key: row.id, staticClass: "stability-wrapper-table-tbody-tr", on: { "click": function($event) {
+    return [_c("tr", { key: row[_vm.rowKey], staticClass: "stability-wrapper-table-tbody-tr", on: { "click": function($event) {
       _vm.trClick(row, _vm.expandKey(i));
     } } }, [_vm._l(_vm.head.left, function(item, i2) {
       return _c("td", { key: item.prop, class: { "sticky-left": i2 === _vm.head.left.length - 1 }, style: _vm.getSticky(item, i2), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
-        return [_vm._v(_vm._s(row.id))];
-      }, { "row": row, "column": item, "content": row.id, "rowIndex": _vm.expandKey(i2) })], 2)]);
+        return [_c("div", { staticClass: "text-content", attrs: { "title": row[item.prop] } }, [_vm._v(_vm._s(row[item.prop]))])];
+      }, { "row": row, "column": item, "content": row[item.prop], "rowIndex": _vm.expandKey(i2) })], 2)]);
     }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.cols, function(item) {
       return _c("td", { key: item.prop }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
-        return [_vm._v(_vm._s(row.id))];
-      }, { "row": row, "column": item, "content": row.id, "rowIndex": _vm.expandKey(i) })], 2)]);
+        return [_c("div", { staticClass: "text-content", attrs: { "title": row[item.prop] } }, [_vm._v(_vm._s(row[item.prop]))])];
+      }, { "row": row, "column": item, "content": row[item.prop], "rowIndex": _vm.expandKey(i) })], 2)]);
     }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.head.right, function(item, j) {
       return _c("td", { key: item.prop, class: { "sticky-right": j === 0 }, style: _vm.getSticky(item, _vm.head.right.length - 1 - j), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
-        return [_vm._v(_vm._s(row.id))];
-      }, { "row": row, "column": item, "content": row.id, "rowIndex": _vm.expandKey(i) })], 2)]);
-    })], 2), _vm.expand && _vm.expand[_vm.expandKey(i)] ? _c("tr", { key: row.id + "expand" }, [_c("td", { attrs: { "colspan": _vm.columns.length } }, [_c("div", { staticStyle: { "height": "100px" } }, [_vm._t("expand", null, { "row": row, "rowIndex": _vm.expandKey(i) })], 2)])]) : _vm._e()];
+        return [_c("div", { staticClass: "text-content", attrs: { "title": row[item.prop] } }, [_vm._v(_vm._s(row[item.prop]))])];
+      }, { "row": row, "column": item, "content": row[item.prop], "rowIndex": _vm.expandKey(i) })], 2)]);
+    })], 2), _vm.expand && _vm.expand[_vm.expandKey(i)] ? _c("tr", { key: row[_vm.rowKey] + "expand", ref: row[_vm.rowKey] + "expand", refInFor: true }, [_c("td", { attrs: { "colspan": _vm.columns.length } }, [_c("div", { staticClass: "tr-expand", style: { width: _vm.$refs.scroll.scrollWidth + "px" } }, [_vm._t("expand", null, { "row": row, "rowIndex": _vm.expandKey(i) })], 2)])]) : _vm._e()];
   }), _vm.virtualScrollY ? _c("tr", { ref: "virtualBottom", style: { height: _vm.virtualScrollY.bottom + "px" } }) : _vm._e()], 2)])]), _c("div", { directives: [{ name: "show", rawName: "v-show", value: _vm.dragSize.clientX, expression: "dragSize.clientX" }], ref: "dargSizeRuler", staticClass: "darg-size-ruler", style: { left: _vm.dragSize.rulerLeft + "px", height: _vm.dragSize.height + "px" } })], 1)]);
 };
 var staticRenderFns = [];
@@ -684,14 +693,12 @@ const __vue2_script = {
     }
   },
   watch: {
-    columns() {
-      this.init();
-    },
     dataSource() {
-      this.init();
+      this.empty();
+      this.$nextTick(() => {
+        this.init();
+      });
     }
-  },
-  created() {
   },
   mounted() {
     this.init();
@@ -699,22 +706,40 @@ const __vue2_script = {
   },
   methods: {
     init() {
+      if (!this.dataSource.length || !this.columns.length)
+        return;
       this.setHead();
       this.virtual = new Virtual({
         rowsNum: this.dataSource.length,
         colsNum: this.columns.length,
         rowSize: this.rowSize,
-        expandSize: this.expandSize,
         colSize: this.colSize
       });
       this.setCols(0);
       this.setRows(0);
     },
-    setHead() {
-      let left = [], middle = [], right = [], columnsLen = this.columns.length, start = null, end = null;
+    updateColumns(columns2) {
+      this.setHead(columns2);
+      this.virtual.opts.colsNum = columns2.length;
+      this.setCols(this.virtual.scrollLeft);
+    },
+    empty() {
+      this.head = {
+        rowNumber: 1,
+        left: [],
+        middle: [],
+        right: []
+      }, this.rows = [];
+      this.cols = [];
+      this.virtualScrollX = null;
+      this.virtualScrollY = null;
+    },
+    setHead(cols) {
+      const columns2 = cols || this.columns;
+      let left = [], middle = [], right = [], columnsLen = columns2.length, start = null, end = null;
       for (let i = 0, j = columnsLen - 1; j >= 0; i++, j--) {
-        const startItem = this.columns[i];
-        const endItem = this.columns[j];
+        const startItem = columns2[i];
+        const endItem = columns2[j];
         if (startItem.fixed) {
           startItem.fixed = "left";
           left.push(startItem);
@@ -730,7 +755,7 @@ const __vue2_script = {
         if (start !== null && end !== null)
           break;
       }
-      middle = start !== 0 && end !== columnsLen ? this.columns.slice(start, end) : this.columns;
+      middle = start !== 0 && end !== columnsLen ? columns2.slice(start, end) : columns2;
       this.head = {
         left,
         middle,
@@ -759,14 +784,9 @@ const __vue2_script = {
       }
     },
     getThStyle(item) {
-      let obj = {};
-      const minWidth = item.minWidth || columns.minWidth;
-      let defaultWidth = item.width || minWidth;
-      obj["min-width"] = defaultWidth > 0 ? defaultWidth + "px" : defaultWidth;
-      if (item.width) {
-        obj["width"] = item.width > 0 ? item.width + "px" : item.width;
-        obj["max-width"] = obj.width;
-      }
+      let obj = {
+        width: (item.width > 0 ? item.width : columns.width) + "px"
+      };
       return obj;
     },
     getCellClass(item) {
@@ -780,20 +800,17 @@ const __vue2_script = {
     },
     getSticky(item, colIndex) {
       let colItem = item;
-      const minWidth = item.minWidth || columns.minWidth;
       if (item.fixed === "left") {
         colItem = colIndex ? this.head.left[colIndex - 1] : item;
       }
       if (item.fixed === "right") {
         colItem = colIndex ? this.head.right[colIndex] : item;
       }
+      const width = item.width > 0 ? item.width : columns.width;
       let stylesObj = {
-        "min-width": (item.width > 0 ? item.width : minWidth) + "px",
-        [item.fixed]: colIndex * (colItem.width || minWidth) + "px"
+        width: width + "px",
+        [item.fixed]: colIndex * (colItem.width || columns.width) + "px"
       };
-      if (item.width) {
-        stylesObj["width"] = item.width > 0 ? item.width + "px" : item.width;
-      }
       return stylesObj;
     },
     scroll(v) {
@@ -811,6 +828,11 @@ const __vue2_script = {
         } else {
           this.expand[rowIndex] = false;
         }
+        this.$nextTick(() => {
+          if (this.expand[rowIndex]) {
+            this.expand[rowIndex] = this.$refs[row[this.rowKey] + "expand"][0].offsetHeight;
+          }
+        });
       }
     },
     expandKey(i) {

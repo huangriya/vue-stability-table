@@ -3,15 +3,15 @@
 <template>
   <div>
     <section>
-      <h3>基本用法 <button @click="setColumn">改变数据</button></h3>
+      <h3>基本用法 <button @click="setData">重新载入数据</button> <button @click="setColumn">改变列数据</button> <button @click="$refs.stabiltyTable.empty()">清空数据</button></h3>
       <div style="height:500px;width:800px;">
-        <stabilityTable :columns="columns" :dataSource="rows" :expandSize="100">
-          <template slot="content" slot-scope="{row}">
+        <stabilityTable ref="stabiltyTable" :columns="columns" :dataSource="rows" :expandSize="100">
+          <!-- <template slot="content" slot-scope="{row}">
             {{row.id}}
-          </template>
-          <!-- <div slot="expand" slot-scope="{rowIndex, row}">
-            afdasfasf{{row}}
-          </div> -->
+          </template> -->
+          <div slot="expand" slot-scope="{rowIndex, row}" :style="{height: rowIndex % 2 === 0 ? '200px' : '20px'}">
+            afdasfasf{{row}}{{rowIndex}}
+          </div>
         </stabilityTable>
       </div>
     </section>
@@ -34,10 +34,10 @@ export default {
   },
   created () {
     let columns = [{
-      label: '固定列',
+      label: '固定列asfasdf',
       prop: 'table',
       fixed: true,
-      width: 80,
+      width: 100,
       resizable: true
     }, {
       label: '固定列2',
@@ -71,9 +71,12 @@ export default {
     })
 
     let rows = []
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 500; i++) {
       rows.push({
-        id: i
+        id: i,
+        table: 'asfasdasfasdfsffsf',
+        table1: '爱爱上爱上爱上爱上上',
+        table2: 'asfasdasfasdfsffsfasfasdasfasdfsffsf'
       })
     }
     
@@ -91,7 +94,34 @@ export default {
         resizable: true
       }]
       
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 70; i++) {
+        columns.push({
+          label: '表头' + i,
+          prop: 'table' + i
+        })
+      }
+
+      columns.push({
+        label: '固定尾1',
+        prop: 'tableLast',
+        fixed: true,
+        width: 80,
+        resizable: true,
+        align: 'center'
+      })
+      this.$refs.stabiltyTable.updateColumns(columns)
+    },
+
+    setData () {
+      let columns = [{
+        label: '固定列',
+        prop: 'table',
+        fixed: true,
+        width: 80,
+        resizable: true
+      }]
+      
+      for (let i = 0; i < 10; i++) {
         columns.push({
           label: '表头' + i,
           prop: 'table' + i
@@ -107,7 +137,18 @@ export default {
         align: 'center'
       })
 
+      let rows = []
+      for (let i = 0; i < 30; i++) {
+        rows.push({
+          id: i,
+          table: 'asfasdasfasdfsffsf',
+          table1: '爱爱上爱上爱上爱上上',
+          table2: 'asfasdasfasdfsffsfasfasdasfasdfsffsf'
+        })
+      }
+      
       this.columns = columns
+      this.rows = rows
     }
   }
 }

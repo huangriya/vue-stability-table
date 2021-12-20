@@ -51,6 +51,8 @@ class Virtual {
     this.rightDistance = 0
 
     this.scrollTop = 0
+
+    this.scrollLeft = 0
   }
 
   // 获取行的区域
@@ -61,63 +63,68 @@ class Virtual {
       return null
     }
 
-    if (!scrollTop || Math.abs(scrollTop - this.scrollTop) > this.opts.rowSize) {
+    let start, end, direction = 'down'
 
-      this.scrollTop = scrollTop
+    // 拓展展开溢出的高度
+    let expandDistance = {
+      top: 0,
+      middle: 0,
+      bottom: 0
+    }
 
-      let start, end
-
-      // 拓展展开溢出的高度
-      let expandDistance = {
-        top: 0,
-        middle: 0,
-        bottom: 0
+    if (scrollTop < this.opts.viewHeight) {
+      start = 0
+      end = 30
+    } else if (virtualBottom.offsetTop - scrollTop < this.opts.viewHeight) {
+      start = this.rowEnd - 15
+      end = start + 30
+      if (end > this.opts.rowsNum) {
+        end = this.opts.rowsNum
       }
 
-      if (scrollTop < this.opts.viewHeight) {
-        start = 0
-        end = 30
-      } else if (virtualBottom.offsetTop - scrollTop < this.opts.viewHeight) {
-        start = this.rowEnd - 10
-        end = start + 30
-        if (end > this.opts.rowsNum) {
-          end = this.opts.rowsNum
-        }
-        if (this.opts.expandSize) {
-          for (const key in expand) {
-            if (key < start) {
-              expandDistance.top += this.opts.expandSize
-            }
-          }
-        }
-        
-      } else if (virtualTop && scrollTop - virtualTop.clientHeight < 100) {
-        start = this.rowStart - 20
-        end = this.rowEnd - 20
-        if (this.opts.expandSize) {
-          for (const key in expand) {
-            if (key < start) {
-              expandDistance.top += this.opts.expandSize
-            } else if (key > end) {
-              expandDistance.bottom += this.opts.expandSize
-            }
+      if (start < this.rowStart) {
+        start = undefined
+        end = undefined
+      }
+
+      if (expand) {
+        for (const key in expand) {
+          if (key < start) {
+            expandDistance.top += expand[key]
           }
         }
       }
-
-      if (start !== undefined && end !== undefined && start !== this.rowStart && end !== this.rowEnd) {
-        this.rowStart = start
-        this.rowEnd = end
-
-        this.topDistance = this.rowStart * this.opts.rowSize + expandDistance.top
-        this.bottomDistance = (this.opts.rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom
-        
-        return {
-          start: this.rowStart,
-          end: this.rowEnd,
-          top: this.topDistance,
-          bottom: this.bottomDistance
+    } else if (virtualTop && scrollTop - virtualTop.clientHeight < 100) {
+      start = this.rowStart - 15
+      end = this.rowEnd - 15
+      
+      if (expand) {
+        for (const key in expand) {
+          if (key < start) {
+            expandDistance.top += expand[key]
+          } else if (key > end) {
+            expandDistance.bottom += expand[key]
+          }
         }
+      }
+    }
+
+    if (start !== undefined && 
+        end !== undefined && 
+        start !== this.rowStart && 
+        end !== this.rowEnd) {
+
+      this.rowStart = start
+      this.rowEnd = end
+
+      this.topDistance = this.rowStart * this.opts.rowSize + expandDistance.top
+      this.bottomDistance = (this.opts.rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom
+      
+      return {
+        start: this.rowStart,
+        end: this.rowEnd,
+        top: this.topDistance,
+        bottom: this.bottomDistance
       }
     }
   }
@@ -131,7 +138,6 @@ class Virtual {
 
     // 一屏的个数
     const screenNum = Math.floor(this.opts.viewWidth / itemSize)
-
 
     // 小于3屏数据时不开启虚拟滚动
     if (this.opts.colsNum <= screenNum * 3) {
@@ -156,6 +162,8 @@ class Virtual {
         isLast = true
       }
     }
+
+    this.scrollLeft = scrollLeft
 
     if ((start !== this.colStart || end !== this.colEnd) && (end - this.colEnd > 5) || (this.colEnd - end > 5) || isLast) {
 

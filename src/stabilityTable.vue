@@ -12,20 +12,23 @@
               <th sticky="left"
                   v-for="(item, i) in head.left" :key="item.prop"
                   :class="{'sticky-left': i === head.left.length - 1}" 
-                  :style="getSticky(item, i)" 
-                  :title="item.label">
-                    <div class="stability-table-cell cell-th" :class="getCellClass(item)">
-                      {{item.label}}
-                    </div>
-                    <span @mousedown="dragSizeDown($event, item)" 
-                          class="resize-handle" v-if="item.resizable && item.width > 0"></span>
-                  </th>
+                  :style="getSticky(item, i)">
+                  <div class="stability-table-cell cell-th" :class="getCellClass(item)">
+                    <slot name="headerText" :column="item">
+                      <div class="text-content" :title="item.label">{{item.label}}</div>
+                    </slot>
+                  </div>
+                  <span @mousedown="dragSizeDown($event, item)" 
+                        class="resize-handle" v-if="item.resizable && item.width > 0"></span>
+              </th>
               <td v-if="virtualScrollX" :style="{'min-width': virtualScrollX.left + 'px'}"></td>
               <th v-for="item in cols" 
                   :key="item.prop"
                   :style="getThStyle(item)">
                 <div class="stability-table-cell" :class="getCellClass(item)">
-                  {{item.label}}
+                  <slot name="headerText" :column="item">
+                    <div class="text-content" :title="item.label">{{item.label}}</div>
+                  </slot>
                 </div>
                 <span class="resize-handle"
                       @mousedown="dragSizeDown($event, item)" v-if="item.resizable && item.width > 0"></span>
@@ -36,10 +39,11 @@
                   v-for="(item, i) in head.right"
                   :class="{'sticky-right': i === 0}"
                   :key="item.prop"
-                  :style="getSticky(item, head.right.length - 1 - i)" 
-                  :title="item.label">
+                  :style="getSticky(item, head.right.length - 1 - i)">
                   <div class="stability-table-cell" :class="getCellClass(item)">
-                    {{item.label}}
+                    <slot name="headerText" :column="item">
+                      <div class="text-content" :title="item.label">{{item.label}}</div>
+                    </slot>
                   </div>
                   <span class="resize-handle" @mousedown="dragSizeDown($event, item)" v-if="item.resizable && item.width > 0"></span>
                 </th>
@@ -48,21 +52,25 @@
           <tbody>
             <tr v-if="virtualScrollY" ref="virtualTop" :style="{height: virtualScrollY.top + 'px'}"></tr>
             <template v-for="(row, i) in rows">
-              <tr class="stability-wrapper-table-tbody-tr" :key="row.id" @click="trClick(row, expandKey(i))">
+              <tr class="stability-wrapper-table-tbody-tr" :key="row[rowKey]" @click="trClick(row, expandKey(i))">
                 <td sticky="left"
                     v-for="(item, i) in head.left"
                     :class="{'sticky-left': i === head.left.length - 1}" 
                     :key="item.prop"
                     :style="getSticky(item, i)" >
                     <div class="stability-table-cell" :class="getCellClass(item)">
-                      <slot name="content" :row="row" :column="item" :content="row.id" :rowIndex="expandKey(i)">{{row.id}}</slot>
+                      <slot name="content" :row="row" :column="item" :content="row[item.prop]" :rowIndex="expandKey(i)">
+                        <div class="text-content" :title="row[item.prop]">{{row[item.prop]}}</div>
+                      </slot>
                     </div>
                 </td>
 
                 <td v-if="virtualScrollX"></td>
                 <td v-for="item in cols" :key="item.prop">
                   <div class="stability-table-cell" :class="getCellClass(item)">
-                    <slot name="content" :row="row" :column="item" :content="row.id" :rowIndex="expandKey(i)">{{row.id}}</slot>
+                    <slot name="content" :row="row" :column="item" :content="row[item.prop]" :rowIndex="expandKey(i)">
+                      <div class="text-content" :title="row[item.prop]">{{row[item.prop]}}</div>
+                    </slot>
                   </div>
                 </td>
                 <td v-if="virtualScrollX"></td>
@@ -73,15 +81,17 @@
                     :key="item.prop"
                     :style="getSticky(item, head.right.length - 1 - j)">
                   <div class="stability-table-cell" :class="getCellClass(item)">
-                    <slot name="content" :row="row" :column="item" :content="row.id" :rowIndex="expandKey(i)">{{row.id}}</slot>
+                    <slot name="content" :row="row" :column="item" :content="row[item.prop]" :rowIndex="expandKey(i)">
+                      <div class="text-content" :title="row[item.prop]">{{row[item.prop]}}</div>
+                    </slot>
                   </div>
                 </td>
               </tr>
 
               <!-- 展开项 -->
-              <tr :key="row.id + 'expand'" v-if="expand && expand[expandKey(i)]">
+              <tr :key="row[rowKey] + 'expand'" :ref="row[rowKey] + 'expand'" v-if="expand && expand[expandKey(i)]">
                 <td :colspan="columns.length">
-                  <div style="height:100px">
+                  <div class="tr-expand" :style="{width: $refs.scroll.scrollWidth + 'px'}">
                     <slot name="expand" :row="row" :rowIndex="expandKey(i)"></slot>
                   </div>
                 </td>
@@ -152,16 +162,12 @@ export default {
   },
 
   watch: {
-    columns () {
-      this.init()
-    },
     dataSource () {
-      this.init()
+      this.empty()
+      this.$nextTick(() => {
+        this.init()
+      })
     }
-  },
-
-  created () {
-    
   },
 
   mounted () {
@@ -172,29 +178,53 @@ export default {
   methods: {
 
     init () {
+      if (!this.dataSource.length || !this.columns.length) return
+
       this.setHead()
+
       this.virtual = new Virtual({
         rowsNum: this.dataSource.length,
         colsNum: this.columns.length,
         // 单行平均高度
         rowSize: this.rowSize,
-        expandSize: this.expandSize,
         // 单列平均宽度
         colSize: this.colSize
       })
+      
       this.setCols(0)
       this.setRows(0)
     },
 
-    // 设置表头数据
-    setHead () {
+    // 更新列数据
+    updateColumns (columns) {
+      this.setHead(columns)
+      this.virtual.opts.colsNum = columns.length
+      this.setCols(this.virtual.scrollLeft)
+    },
 
-      let left = [], middle = [], right = [], columnsLen = this.columns.length, start = null, end = null
+    // 清空表格
+    empty () {
+      this.head = {
+        rowNumber: 1,
+        left: [],
+        middle: [],
+        right: []
+      },
+      this.rows = []
+      this.cols = []
+      this.virtualScrollX = null
+      this.virtualScrollY = null
+    },
+
+    // 设置表头数据
+    setHead (cols) {
+      const columns = cols || this.columns
+      let left = [], middle = [], right = [], columnsLen = columns.length, start = null, end = null
 
       // 获取两边的固定列
       for (let i = 0, j = columnsLen - 1; i < columnsLen, j >= 0; i++, j--) {
-        const startItem = this.columns[i]
-        const endItem = this.columns[j]
+        const startItem = columns[i]
+        const endItem = columns[j]
 
         if (startItem.fixed) {
           startItem.fixed = 'left'
@@ -214,7 +244,7 @@ export default {
       }
 
       // 获取非固定列
-      middle = start !== 0 && end !== columnsLen ? this.columns.slice(start, end) : this.columns
+      middle = start !== 0 && end !== columnsLen ? columns.slice(start, end) : columns
 
       this.head = {
         left: left,
@@ -251,18 +281,9 @@ export default {
     },
     
     getThStyle (item) {
-      let obj = {}
-
-      const minWidth = item.minWidth || columns.minWidth
-     
-      let defaultWidth = item.width || minWidth
-      obj['min-width'] = defaultWidth > 0 ? defaultWidth + 'px' : defaultWidth
-      
-      if (item.width) {
-        obj['width'] = item.width > 0 ? item.width + 'px' : item.width
-        obj['max-width'] = obj.width
+      let obj = {
+        width: (item.width > 0 ? item.width : columns.width) + 'px'
       }
-      
       return obj
     },
 
@@ -281,7 +302,6 @@ export default {
     getSticky (item, colIndex) {
 
       let colItem = item
-      const minWidth = item.minWidth || columns.minWidth
 
       if (item.fixed === 'left') {
         colItem = colIndex ? this.head.left[colIndex - 1] : item
@@ -291,13 +311,11 @@ export default {
         colItem = colIndex ? this.head.right[colIndex] : item
       }
 
-      let stylesObj = {
-        'min-width': (item.width > 0 ? item.width : minWidth) + 'px',
-        [item.fixed]: colIndex * (colItem.width || minWidth) + 'px'
-      }
+      const width = item.width > 0 ? item.width : columns.width
 
-      if (item.width) {
-        stylesObj['width'] = item.width > 0 ? item.width + 'px' : item.width
+      let stylesObj = {
+        width: width + 'px',
+        [item.fixed]: colIndex * (colItem.width || columns.width) + 'px'
       }
 
       return stylesObj
@@ -320,6 +338,11 @@ export default {
         } else {
           this.expand[rowIndex] = false
         }
+        this.$nextTick(() => {
+           if (this.expand[rowIndex]) {
+             this.expand[rowIndex] = this.$refs[row[this.rowKey] + 'expand'][0].offsetHeight
+          }
+        })
       }
     },
 
@@ -351,6 +374,9 @@ export default {
 <style lang="less">
 .vue-stability-table {
   height: 100%;
+  * {
+    box-sizing: border-box;
+  }
   &.not-user-select {
     user-select: none;
     -webkit-user-select: none;
@@ -370,7 +396,9 @@ export default {
     .stability-wrapper-table {
       text-align: left;
       display: table;
-      min-width: 100%;
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: separate;
       th, td {
         background-color: #fff;
         transition: background-color .5s ease .2s;
@@ -378,6 +406,13 @@ export default {
         .stability-table-cell {
           padding: 0 8px;
           position: relative;
+          width: 100%;
+          .text-content {
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
           &.align-left {
             text-align: left;
           }
@@ -437,14 +472,17 @@ export default {
         top: 0;
         z-index: 2;
         tr {
-          height: 50px;
+          height: 40px;
         }
         th {
           border-bottom: 2px solid #ededed;
           font-size: 14px;
           font-weight: 400;
-          height: 50px;
-          min-height: 50px;
+          height: 40px;
+          min-height: 40px;
+          &:hover {
+            background-color: #eff3fd;
+          }
           .resize-handle {
             width: 2px;
             position: absolute;
@@ -460,7 +498,7 @@ export default {
         }
       }
       .stability-wrapper-table-tbody-tr {
-        height: 50px;
+        height: 40px;
         td {
           border-bottom: 1px solid #ededed;
           font-size: 12px;
@@ -470,6 +508,10 @@ export default {
             background-color: #eff3fd;
           }
         }
+      }
+      .tr-expand {
+        position: sticky;
+        left: 0;
       }
     }
   }
