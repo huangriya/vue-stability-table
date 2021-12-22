@@ -1,9 +1,12 @@
 # vue-agile-scrollbar
 
-基于vue的自定义滚动条组件，完全基于浏览器的滚动，简单而强大
+基于vue的表格组件，高性能，支持一次性显示10万条、1万列的数据
 
 # Demo
 
 # Simple usage
 
 # Api
+
+
+# solt
