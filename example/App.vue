@@ -6,10 +6,10 @@
       <h3>基本用法 <button @click="setData">重新载入数据</button> <button @click="setColumn">改变列数据</button> <button @click="$refs.stabiltyTable.empty()">清空数据</button></h3>
       <div style="height:500px;width:800px;">
         <stabilityTable ref="stabiltyTable" :columns="columns" :dataSource="rows" :expandSize="100">
-          <!-- <template slot="content" slot-scope="{row}">
+          <template slot="content" slot-scope="{row}">
             {{row.id}}
-          </template> -->
-          <div slot="expand" slot-scope="{rowIndex, row}" :style="{height: rowIndex % 2 === 0 ? '200px' : '20px'}">
+          </template>
+          <div slot="expand" slot-scope="{rowIndex, row}" :style="{height: rowIndex % 2 === 0 ? '400px' : '20px', background: '#f1f1f1'}">
             afdasfasf{{row}}{{rowIndex}}
           </div>
         </stabilityTable>
@@ -47,10 +47,11 @@ export default {
       resizable: true
     }]
     
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i <= 30; i++) {
       columns.push({
         label: '表头' + i,
-        prop: 'table' + i
+        prop: 'table' + i,
+        resizable: true
       })
     }
 
@@ -71,7 +72,7 @@ export default {
     })
 
     let rows = []
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 1000; i++) {
       rows.push({
         id: i,
         table: 'asfasdasfasdfsffsf',

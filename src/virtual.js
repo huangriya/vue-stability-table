@@ -32,14 +32,11 @@ class Virtual {
       viewWidth: 800
     }, options)
 
-    this.rowStart = null
-    this.rowEnd = null
-
-    this.colStart = null
-    this.colEnd = null
-
     // 顶部距离
     this.topDistance = 0
+
+    this.rowStart = null
+    this.rowEnd = null
 
     // 底部距离
     this.bottomDistance = 0
@@ -47,23 +44,26 @@ class Virtual {
     // 左边距离
     this.leftDistance = 0
 
+    this.colStart = null
+    this.colEnd = null
+
     // 右边距离
     this.rightDistance = 0
 
-    this.scrollTop = 0
+    // 一屏可展示的条数
+    this.screenRowSize = Math.floor(this.opts.viewHeight / this.opts.rowSize)
 
+    this.scrollTop = 0
     this.scrollLeft = 0
   }
 
-  // 获取行的区域
-  getRowsRegion (scrollTop, expand, virtualBottom, virtualTop) {
+  // 获取行区间
+  getRowsRegion (scrollTop, expand) {
 
-     // 总行数小于等于60行，默认不开启虚拟滚动
-    if (this.opts.rowsNum <= 60) {
-      return null
-    }
+    // 总行数小于等于60行，默认不开启虚拟滚动
+    if (this.opts.rowsNum <= 60)  return null
 
-    let start, end, direction = 'down'
+    let start, end
 
     // 拓展展开溢出的高度
     let expandDistance = {
@@ -72,54 +72,75 @@ class Virtual {
       bottom: 0
     }
 
-    if (scrollTop < this.opts.viewHeight) {
+    const rowsNum = this.opts.rowsNum
+    const rowSize = this.opts.rowSize
+    const viewHeight = this.opts.viewHeight
+    const pageSize = 30
+    const overflowHeight = viewHeight / 2
+
+    if (scrollTop < (viewHeight * 1.5)) {
       start = 0
-      end = 30
-    } else if (virtualBottom.offsetTop - scrollTop < this.opts.viewHeight) {
-      start = this.rowEnd - 15
-      end = start + 30
-      if (end > this.opts.rowsNum) {
-        end = this.opts.rowsNum
+      end = pageSize
+    } else if (scrollTop - this.scrollTop > overflowHeight) {
+      let topDistance = this.topDistance
+      for (let i = this.rowStart; i < rowsNum; i++) {
+        topDistance += rowSize + (expand[i] || 0)
+        if (topDistance >= scrollTop) {
+          start = i - Math.floor(pageSize / 3)
+          end = start + pageSize
+          break
+        } 
       }
+    } else if (this.scrollTop - scrollTop > overflowHeight) {
+      let topDistance = this.topDistance + overflowHeight
+      if (topDistance >= scrollTop) {
+        start = this.rowStart - Math.floor(pageSize / 3)
+        end = start + pageSize
+      }      
 
-      if (start < this.rowStart) {
-        start = undefined
-        end = undefined
-      }
-
-      if (expand) {
-        for (const key in expand) {
-          if (key < start) {
-            expandDistance.top += expand[key]
-          }
-        }
-      }
-    } else if (virtualTop && scrollTop - virtualTop.clientHeight < 100) {
-      start = this.rowStart - 15
-      end = this.rowEnd - 15
-      
-      if (expand) {
-        for (const key in expand) {
-          if (key < start) {
-            expandDistance.top += expand[key]
-          } else if (key > end) {
-            expandDistance.bottom += expand[key]
+      if (this.topDistance - scrollTop > 100) {
+        let topDistance = this.topDistance
+        for (let i = this.rowStart; i > pageSize; i--) {
+          topDistance -= rowSize + (expand[i] || 0)
+          if (topDistance <= scrollTop) {
+            start = i - Math.floor(pageSize / 3)
+            end = start + pageSize
+            break
           }
         }
       }
     }
 
-    if (start !== undefined && 
-        end !== undefined && 
-        start !== this.rowStart && 
-        end !== this.rowEnd) {
+    if (expand) {
+      for (const key in expand) {
+        if (key < start) {
+          expandDistance.top += expand[key]
+        } else if (key > end) {
+          expandDistance.bottom += expand[key]
+        }
+      }
+    }
 
+    if (end > rowsNum) {
+      end = rowsNum
+    }
+
+    if (start < 0) {
+      start = 0
+    }
+      
+    if (start !== undefined && 
+      end !== undefined && 
+      (start !== this.rowStart || end !== this.rowEnd)) {
+      
+      this.scrollTop = scrollTop
+      
       this.rowStart = start
       this.rowEnd = end
 
       this.topDistance = this.rowStart * this.opts.rowSize + expandDistance.top
-      this.bottomDistance = (this.opts.rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom
-      
+      this.bottomDistance = (rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom
+
       return {
         start: this.rowStart,
         end: this.rowEnd,

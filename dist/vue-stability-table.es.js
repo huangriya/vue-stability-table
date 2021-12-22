@@ -398,65 +398,84 @@ class Virtual {
       viewHeight: 500,
       viewWidth: 800
     }, options);
+    this.topDistance = 0;
     this.rowStart = null;
     this.rowEnd = null;
-    this.colStart = null;
-    this.colEnd = null;
-    this.topDistance = 0;
     this.bottomDistance = 0;
     this.leftDistance = 0;
+    this.colStart = null;
+    this.colEnd = null;
     this.rightDistance = 0;
+    this.screenRowSize = Math.floor(this.opts.viewHeight / this.opts.rowSize);
     this.scrollTop = 0;
     this.scrollLeft = 0;
   }
-  getRowsRegion(scrollTop, expand, virtualBottom, virtualTop) {
-    if (this.opts.rowsNum <= 60) {
+  getRowsRegion(scrollTop, expand) {
+    if (this.opts.rowsNum <= 60)
       return null;
-    }
     let start, end;
     let expandDistance = {
       top: 0,
       middle: 0,
       bottom: 0
     };
-    if (scrollTop < this.opts.viewHeight) {
+    const rowsNum = this.opts.rowsNum;
+    const rowSize = this.opts.rowSize;
+    const viewHeight = this.opts.viewHeight;
+    const pageSize = 30;
+    const overflowHeight = viewHeight / 2;
+    if (scrollTop < viewHeight * 1.5) {
       start = 0;
-      end = 30;
-    } else if (virtualBottom.offsetTop - scrollTop < this.opts.viewHeight) {
-      start = this.rowEnd - 15;
-      end = start + 30;
-      if (end > this.opts.rowsNum) {
-        end = this.opts.rowsNum;
-      }
-      if (start < this.rowStart) {
-        start = void 0;
-        end = void 0;
-      }
-      if (expand) {
-        for (const key in expand) {
-          if (key < start) {
-            expandDistance.top += expand[key];
-          }
+      end = pageSize;
+    } else if (scrollTop - this.scrollTop > overflowHeight) {
+      let topDistance = this.topDistance;
+      for (let i = this.rowStart; i < rowsNum; i++) {
+        topDistance += rowSize + (expand[i] || 0);
+        if (topDistance >= scrollTop) {
+          start = i - Math.floor(pageSize / 3);
+          end = start + pageSize;
+          break;
         }
       }
-    } else if (virtualTop && scrollTop - virtualTop.clientHeight < 100) {
-      start = this.rowStart - 15;
-      end = this.rowEnd - 15;
-      if (expand) {
-        for (const key in expand) {
-          if (key < start) {
-            expandDistance.top += expand[key];
-          } else if (key > end) {
-            expandDistance.bottom += expand[key];
+    } else if (this.scrollTop - scrollTop > overflowHeight) {
+      let topDistance = this.topDistance + overflowHeight;
+      if (topDistance >= scrollTop) {
+        start = this.rowStart - Math.floor(pageSize / 3);
+        end = start + pageSize;
+      }
+      if (this.topDistance - scrollTop > 100) {
+        let topDistance2 = this.topDistance;
+        for (let i = this.rowStart; i > pageSize; i--) {
+          topDistance2 -= rowSize + (expand[i] || 0);
+          if (topDistance2 <= scrollTop) {
+            start = i - Math.floor(pageSize / 3);
+            end = start + pageSize;
+            break;
           }
         }
       }
     }
-    if (start !== void 0 && end !== void 0 && start !== this.rowStart && end !== this.rowEnd) {
+    if (expand) {
+      for (const key in expand) {
+        if (key < start) {
+          expandDistance.top += expand[key];
+        } else if (key > end) {
+          expandDistance.bottom += expand[key];
+        }
+      }
+    }
+    if (end > rowsNum) {
+      end = rowsNum;
+    }
+    if (start < 0) {
+      start = 0;
+    }
+    if (start !== void 0 && end !== void 0 && (start !== this.rowStart || end !== this.rowEnd)) {
+      this.scrollTop = scrollTop;
       this.rowStart = start;
       this.rowEnd = end;
       this.topDistance = this.rowStart * this.opts.rowSize + expandDistance.top;
-      this.bottomDistance = (this.opts.rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom;
+      this.bottomDistance = (rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom;
       return {
         start: this.rowStart,
         end: this.rowEnd,
@@ -562,7 +581,7 @@ var render = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _c("div", { staticClass: "vue-stability-table", class: { "not-user-select": _vm.dragSize.clientX } }, [_c("div", { ref: "tableBox", staticClass: "vue-stability-table-wrapper" }, [_c("vueAgileScrollbar", { ref: "scroll", attrs: { "offsetLeft": _vm.offsetLeft, "offsetRight": _vm.offsetRight, "offsetTop": _vm.offsetTop }, on: { "scroll": _vm.scroll, "updated": _vm.scrollUpdated, "scroll-hit": _vm.scrollHit } }, [_c("table", { staticClass: "stability-wrapper-table", class: {
+  return _c("div", { staticClass: "vue-stability-table", class: { "not-user-select": _vm.dragSize.clientX } }, [_c("div", { ref: "tableBox", staticClass: "vue-stability-table-wrapper" }, [_c("vueAgileScrollbar", { ref: "scroll", attrs: { "dragSpeedY": 0.6, "offsetLeft": _vm.offsetLeft, "offsetRight": _vm.offsetRight, "offsetTop": _vm.offsetTop }, on: { "scroll": _vm.scroll, "updated": _vm.scrollUpdated, "scroll-hit": _vm.scrollHit } }, [_c("table", { staticClass: "stability-wrapper-table", class: {
     "not-sticky": !_vm.stickyType,
     "not-sticky-left": _vm.stickyType === "left",
     "not-sticky-right": _vm.stickyType === "right"
@@ -572,13 +591,13 @@ var render = function() {
     }, { "column": item })], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
-  }), _vm.virtualScrollX ? _c("td", { style: { "min-width": _vm.virtualScrollX.left + "px" } }) : _vm._e(), _vm._l(_vm.cols, function(item) {
+  }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.left + "px" } }) : _vm._e(), _vm._l(_vm.cols, function(item) {
     return _c("th", { key: item.prop, style: _vm.getThStyle(item) }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("headerText", function() {
       return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(_vm._s(item.label))])];
     }, { "column": item })], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
-  }), _vm.virtualScrollX ? _c("td", { style: { "min-width": _vm.virtualScrollX.right + "px" } }) : _vm._e(), _vm._l(_vm.head.right, function(item, i) {
+  }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.right + "px" } }) : _vm._e(), _vm._l(_vm.head.right, function(item, i) {
     return _c("th", { key: item.prop, class: { "sticky-right": i === 0 }, style: _vm.getSticky(item, _vm.head.right.length - 1 - i), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("headerText", function() {
       return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(_vm._s(item.label))])];
     }, { "column": item })], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
@@ -711,7 +730,7 @@ const __vue2_script = {
       this.setHead();
       this.virtual = new Virtual({
         rowsNum: this.dataSource.length,
-        colsNum: this.columns.length,
+        colsNum: this.head.middle.length,
         rowSize: this.rowSize,
         colSize: this.colSize
       });
@@ -755,7 +774,7 @@ const __vue2_script = {
         if (start !== null && end !== null)
           break;
       }
-      middle = start !== 0 && end !== columnsLen ? columns2.slice(start, end) : columns2;
+      middle = start !== 0 && end !== columnsLen ? columns2.slice(start, end + 1) : columns2;
       this.head = {
         left,
         middle,
@@ -842,6 +861,10 @@ const __vue2_script = {
       return i;
     },
     scrollUpdated(v) {
+      if (this.virtual) {
+        this.virtual.opts.viewHeight = v.scrollHeight;
+        this.virtual.opts.viewWidth = v.scrollWidth;
+      }
       this.dragSize.height = v.scrollContentHeight > v.scrollHeight ? v.scrollHeight : v.scrollContentHeight;
       if (v.scrollBarX) {
         if (v.left === 0) {

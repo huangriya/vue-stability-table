@@ -1,7 +1,7 @@
 <template>
   <div class="vue-stability-table" :class="{'not-user-select': dragSize.clientX}">
     <div class="vue-stability-table-wrapper" ref="tableBox">
-      <vueAgileScrollbar ref="scroll" @scroll="scroll" :offsetLeft="offsetLeft" :offsetRight="offsetRight" :offsetTop="offsetTop" @updated="scrollUpdated" @scroll-hit="scrollHit">
+      <vueAgileScrollbar ref="scroll" @scroll="scroll" :dragSpeedY="0.6" :offsetLeft="offsetLeft" :offsetRight="offsetRight" :offsetTop="offsetTop" @updated="scrollUpdated" @scroll-hit="scrollHit">
         <table cellpadding="0" cellspacing="0"
               class="stability-wrapper-table"
               :class="{'not-sticky': !stickyType, 
@@ -21,7 +21,7 @@
                   <span @mousedown="dragSizeDown($event, item)" 
                         class="resize-handle" v-if="item.resizable && item.width > 0"></span>
               </th>
-              <td v-if="virtualScrollX" :style="{'min-width': virtualScrollX.left + 'px'}"></td>
+              <td v-if="virtualScrollX" :style="{'width': virtualScrollX.left + 'px'}"></td>
               <th v-for="item in cols" 
                   :key="item.prop"
                   :style="getThStyle(item)">
@@ -33,7 +33,7 @@
                 <span class="resize-handle"
                       @mousedown="dragSizeDown($event, item)" v-if="item.resizable && item.width > 0"></span>
               </th>
-              <td v-if="virtualScrollX" :style="{'min-width': virtualScrollX.right + 'px'}"></td>
+              <td v-if="virtualScrollX" :style="{'width': virtualScrollX.right + 'px'}"></td>
 
               <th sticky="right"
                   v-for="(item, i) in head.right"
@@ -184,9 +184,11 @@ export default {
 
       this.virtual = new Virtual({
         rowsNum: this.dataSource.length,
-        colsNum: this.columns.length,
+        colsNum: this.head.middle.length,
+
         // 单行平均高度
         rowSize: this.rowSize,
+        
         // 单列平均宽度
         colSize: this.colSize
       })
@@ -239,12 +241,12 @@ export default {
         } else {
           end = j
         }
-        
+
         if (start !== null && end !== null) break
       }
-
+      
       // 获取非固定列
-      middle = start !== 0 && end !== columnsLen ? columns.slice(start, end) : columns
+      middle = start !== 0 && end !== columnsLen ? columns.slice(start, end + 1) : columns
 
       this.head = {
         left: left,
@@ -354,6 +356,10 @@ export default {
     },
     
     scrollUpdated (v) {
+      if (this.virtual) {
+        this.virtual.opts.viewHeight = v.scrollHeight
+        this.virtual.opts.viewWidth = v.scrollWidth
+      }
       this.dragSize.height = v.scrollContentHeight > v.scrollHeight ? v.scrollHeight : v.scrollContentHeight
       if (v.scrollBarX) {
         if (v.left === 0) {
