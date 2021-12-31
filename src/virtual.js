@@ -84,7 +84,7 @@ class Virtual {
     } else if (scrollTop - this.scrollTop > overflowHeight) {
       let topDistance = this.topDistance
       for (let i = this.rowStart; i < rowsNum; i++) {
-        topDistance += rowSize + (expand[i] || 0)
+        topDistance += rowSize + ((expand && expand[i]) || 0)
         if (topDistance >= scrollTop) {
           start = i - Math.floor(pageSize / 3)
           end = start + pageSize
@@ -101,7 +101,7 @@ class Virtual {
       if (this.topDistance - scrollTop > 100) {
         let topDistance = this.topDistance
         for (let i = this.rowStart; i > pageSize; i--) {
-          topDistance -= rowSize + (expand[i] || 0)
+          topDistance -= rowSize + ((expand && expand[i]) || 0)
           if (topDistance <= scrollTop) {
             start = i - Math.floor(pageSize / 3)
             end = start + pageSize

@@ -1,6 +1,6 @@
 <template>
-  <div class="vue-stability-table" :class="{'not-user-select': dragSize.clientX}">
-    <div class="vue-stability-table-wrapper" ref="tableBox">
+  <div class="stability-table" :class="{'not-user-select': dragSize.clientX}">
+    <div class="stability-table-wrapper" ref="tableBox">
       <vueAgileScrollbar ref="scroll" @scroll="scroll" :dragSpeedY="0.6" :offsetLeft="offsetLeft" :offsetRight="offsetRight" :offsetTop="offsetTop" @updated="scrollUpdated" @scroll-hit="scrollHit">
         <table cellpadding="0" cellspacing="0"
               class="stability-wrapper-table"
@@ -13,10 +13,11 @@
                   v-for="(item, i) in head.left" :key="item.prop"
                   :class="{'sticky-left': i === head.left.length - 1}" 
                   :style="getSticky(item, i)">
-                  <div class="stability-table-cell cell-th" :class="getCellClass(item)">
-                    <slot name="headerText" :column="item">
-                      <div class="text-content" :title="item.label">{{item.label}}</div>
-                    </slot>
+                  <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]">
+                    <div class="text-content" :title="item.label">
+                      <slot name="headerText" :column="item">{{item.label}}</slot>
+                    </div>
+                    <Sort v-if="item.sortable" />
                   </div>
                   <span @mousedown="dragSizeDown($event, item)" 
                         class="resize-handle" v-if="item.resizable && item.width > 0"></span>
@@ -25,10 +26,11 @@
               <th v-for="item in cols" 
                   :key="item.prop"
                   :style="getThStyle(item)">
-                <div class="stability-table-cell" :class="getCellClass(item)">
-                  <slot name="headerText" :column="item">
-                    <div class="text-content" :title="item.label">{{item.label}}</div>
-                  </slot>
+                <div class="stability-table-cell cell-flex" :class="getCellClass(item)">
+                  <div class="text-content" :title="item.label">
+                    <slot name="headerText" :column="item">{{item.label}}</slot>
+                  </div>
+                  <Sort v-if="item.sortable"/>
                 </div>
                 <span class="resize-handle"
                       @mousedown="dragSizeDown($event, item)" v-if="item.resizable && item.width > 0"></span>
@@ -40,10 +42,11 @@
                   :class="{'sticky-right': i === 0}"
                   :key="item.prop"
                   :style="getSticky(item, head.right.length - 1 - i)">
-                  <div class="stability-table-cell" :class="getCellClass(item)">
-                    <slot name="headerText" :column="item">
-                      <div class="text-content" :title="item.label">{{item.label}}</div>
-                    </slot>
+                  <div class="stability-table-cell cell-flex" :class="getCellClass(item)">
+                    <div class="text-content" :title="item.label">
+                      <slot name="headerText" :column="item">{{item.label}}</slot>
+                    </div>
+                    <Sort v-if="item.sortable"/>
                   </div>
                   <span class="resize-handle" @mousedown="dragSizeDown($event, item)" v-if="item.resizable && item.width > 0"></span>
                 </th>
@@ -58,13 +61,13 @@
                     :class="{'sticky-left': i === head.left.length - 1}" 
                     :key="item.prop"
                     :style="getSticky(item, i)" >
-                    <div class="stability-table-cell" :class="getCellClass(item)">
+                    <div class="stability-table-cell cell-flex" :class="getCellClass(item)">
+                      <open-icon v-if="i === 0 && row[childrenColumnName] && row[childrenColumnName].length" />
                       <slot name="content" :row="row" :column="item" :content="row[item.prop]" :rowIndex="expandKey(i)">
                         <div class="text-content" :title="row[item.prop]">{{row[item.prop]}}</div>
                       </slot>
                     </div>
                 </td>
-
                 <td v-if="virtualScrollX"></td>
                 <td v-for="item in cols" :key="item.prop">
                   <div class="stability-table-cell" :class="getCellClass(item)">
@@ -112,13 +115,19 @@ import vueAgileScrollbar from 'vue-agile-scrollbar'
 import 'vue-agile-scrollbar/dist/style.css'
 import Virtual from './virtual.js'
 import dragMixin from './dragMixin'
+import { getAllRows, getAllRowsFind } from './utils'
+import Sort from './source/sort.vue'
+import openIcon from './source/openIcon.vue'
 
 export default {
-  components: { vueAgileScrollbar },
+  components: { vueAgileScrollbar, Sort, openIcon },
   props: props,
   mixins: [dragMixin],
   data () {
     return {
+
+      // 所有行
+      allRows: [],
 
       head: {
         rowNumber: 1,
@@ -130,7 +139,8 @@ export default {
       rows: [],
       cols: [],
 
-      expand: {},
+      // 记录扩展行展开
+      expand: null,
 
       virtualScrollX: null,
       virtualScrollY: null,
@@ -138,12 +148,14 @@ export default {
       // Y轴滚动条顶部偏移量
       offsetTop: 0,
 
-
+      // 固定列类型
       stickyType: ''
     }
   },
 
   computed: {
+
+    // 滚动条左边偏移
     offsetLeft () {
       let num = 5
       this.head.left.forEach(o => {
@@ -152,6 +164,7 @@ export default {
       return num
     },
 
+    // 滚动条右边偏移
     offsetRight () {
       let num = 5
       this.head.right.forEach(o => {
@@ -182,8 +195,10 @@ export default {
 
       this.setHead()
 
+      this.allRows = Object.freeze(this.dataSource)
+
       this.virtual = new Virtual({
-        rowsNum: this.dataSource.length,
+        rowsNum: this.allRows.length,
         colsNum: this.head.middle.length,
 
         // 单行平均高度
@@ -262,7 +277,7 @@ export default {
 
     // 设置行数据
     setRows (scrollTop) {
-      let rowsRegion = this.virtual.getRowsRegion(scrollTop, this.expand, this.$refs.virtualBottom, this.$refs.virtualTop)
+      let rowsRegion = this.virtual.getRowsRegion(scrollTop, this.expand)
       if (rowsRegion) {
         this.virtualScrollY = rowsRegion
         this.rows = this.dataSource.slice(this.virtualScrollY.start, this.virtualScrollY.end)
@@ -378,7 +393,7 @@ export default {
 </script>
 
 <style lang="less">
-.vue-stability-table {
+.stability-table {
   height: 100%;
   * {
     box-sizing: border-box;
@@ -387,7 +402,7 @@ export default {
     user-select: none;
     -webkit-user-select: none;
   }
-  .vue-stability-table-wrapper {
+  .stability-table-wrapper {
     height: 100%;
     position: relative;
     .darg-size-ruler {
@@ -414,7 +429,7 @@ export default {
           position: relative;
           width: 100%;
           .text-content {
-            width: 100%;
+            max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -424,10 +439,22 @@ export default {
           }
           &.align-center {
             text-align: center;
+            &.cell-flex {
+              justify-content: center
+            }
           }
           &.align-right {
             text-align: right;
+            &.cell-flex {
+              justify-content: right;
+            }
           }
+        }
+      }
+      .cell-flex {
+        display: flex;
+        &.sortable-column {
+          cursor: pointer;
         }
       }
       tr {
@@ -501,6 +528,7 @@ export default {
               background-color: #688ff4;
             }
           }
+          
         }
       }
       .stability-wrapper-table-tbody-tr {

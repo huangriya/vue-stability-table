@@ -16,7 +16,9 @@ export const columns = {
   maxWidth: null,
 
   // 格式化内容的函数
-  formatter: null
+  formatter: null,
+
+  sortable: false
 }
 
 export default {
@@ -40,6 +42,12 @@ export default {
   childrenColumnName: {
     type: String,
     default: 'children'
+  },
+
+  // 树形结构缩进宽度
+  indentSize: {
+    type: Number,
+    default: 16
   },
 
   // 初始时，是否展开所有行
