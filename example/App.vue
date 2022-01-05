@@ -6,12 +6,12 @@
       <h3>基本用法 <button @click="setData">重新载入数据</button> <button @click="setColumn">改变列数据</button> <button @click="$refs.stabiltyTable.empty()">清空数据</button></h3>
       <div style="height:500px;width:800px;">
         <stabilityTable ref="stabiltyTable" :columns="columns" :dataSource="rows" :expandSize="100">
-          <template slot="content" slot-scope="{row}">
+          <!-- <template slot="content" slot-scope="{row, rowIndex}">
             {{row.id}}
-          </template>
-          <div slot="expand" slot-scope="{rowIndex, row}" :style="{height: rowIndex % 2 === 0 ? '400px' : '20px', background: '#f1f1f1'}">
+          </template> -->
+          <!-- <div slot="expand" slot-scope="{rowIndex, row}" :style="{height: rowIndex % 2 === 0 ? '400px' : '20px', background: '#f1f1f1'}">
             afdasfasf{{row}}{{rowIndex}}
-          </div>
+          </div> -->
         </stabilityTable>
       </div>
     </section>
@@ -34,16 +34,17 @@ export default {
   },
   created () {
     let columns = [{
-      label: '固定列asfasdf',
+      label: '固定列asadfasdfas',
       prop: 'table',
       fixed: true,
-      width: 100,
+      width: 120,
+      sortable: true,
       resizable: true
     }, {
       label: '固定列2',
       prop: 'fixedTable2',
       fixed: true,
-      width: 80,
+      width: 120,
       resizable: true
     }]
     
@@ -51,7 +52,8 @@ export default {
       columns.push({
         label: '表头' + i,
         prop: 'table' + i,
-        resizable: true
+        resizable: true,
+        sortable: true
       })
     }
 
@@ -59,26 +61,41 @@ export default {
       label: '固定尾1',
       prop: 'tableLast',
       fixed: true,
-      width: 80,
+      width: 120,
       resizable: true,
+      sortable: true,
       align: 'center'
     },{
       label: '固定尾2',
       prop: 'tableLast2',
       fixed: true,
-      width: 80,
+      width: 120,
       resizable: true,
+      sortable: true,
       align: 'right'
     })
 
     let rows = []
-    for (let i = 0; i < 1000; i++) {
-      rows.push({
+    for (let i = 0; i < 541; i++) {
+      let obj = {
         id: i,
-        table: 'asfasdasfasdfsffsf',
-        table1: '爱爱上爱上爱上爱上上',
-        table2: 'asfasdasfasdfsffsfasfasdasfasdfsffsf'
-      })
+        table: '是否' + i,
+        table1: i,
+        table2: i,
+        children: []
+      }
+
+   
+      // for(let j = 0; j < 10; j++) {
+      //   obj.children.push({
+      //     id: i + 'ch' + j,
+      //     table: '啊师傅的asdfasdfas',
+      //     table1: '爱爱上爱上爱上爱上上',
+      //     table2: 'asfasdasfasdfsffsfasfasdasfasdfsffsf'
+      //   })
+      // }
+      
+      rows.push(obj)
     }
     
     this.columns = columns
@@ -139,7 +156,7 @@ export default {
       })
 
       let rows = []
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 50; i++) {
         rows.push({
           id: i,
           table: 'asfasdasfasdfsffsf',
@@ -150,6 +167,10 @@ export default {
       
       this.columns = columns
       this.rows = rows
+    },
+
+    sortChange () {
+      
     }
   }
 }

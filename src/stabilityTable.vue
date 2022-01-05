@@ -1,6 +1,6 @@
 <template>
-  <div class="vue-stability-table" :class="{'not-user-select': dragSize.clientX}">
-    <div class="vue-stability-table-wrapper" ref="tableBox">
+  <div class="stability-table" :class="{'not-user-select': dragSize.clientX}">
+    <div class="stability-table-wrapper" ref="tableBox">
       <vueAgileScrollbar ref="scroll" @scroll="scroll" :dragSpeedY="0.6" :offsetLeft="offsetLeft" :offsetRight="offsetRight" :offsetTop="offsetTop" @updated="scrollUpdated" @scroll-hit="scrollHit">
         <table cellpadding="0" cellspacing="0"
               class="stability-wrapper-table"
@@ -13,10 +13,11 @@
                   v-for="(item, i) in head.left" :key="item.prop"
                   :class="{'sticky-left': i === head.left.length - 1}" 
                   :style="getSticky(item, i)">
-                  <div class="stability-table-cell cell-th" :class="getCellClass(item)">
-                    <slot name="headerText" :column="item">
-                      <div class="text-content" :title="item.label">{{item.label}}</div>
-                    </slot>
+                  <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
+                    <div class="text-content" :title="item.label">
+                      <slot name="headerText" :column="item">{{item.label}}</slot>
+                    </div>
+                    <Sort v-if="item.sortable" :sort="item.prop" :sortOrders="sortOrders" :activeSort="activeSort"/>
                   </div>
                   <span @mousedown="dragSizeDown($event, item)" 
                         class="resize-handle" v-if="item.resizable && item.width > 0"></span>
@@ -25,10 +26,11 @@
               <th v-for="item in cols" 
                   :key="item.prop"
                   :style="getThStyle(item)">
-                <div class="stability-table-cell" :class="getCellClass(item)">
-                  <slot name="headerText" :column="item">
-                    <div class="text-content" :title="item.label">{{item.label}}</div>
-                  </slot>
+                <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
+                  <div class="text-content" :title="item.label">
+                    <slot name="headerText" :column="item">{{item.label}}</slot>
+                  </div>
+                  <Sort v-if="item.sortable" :sort="item.prop" :sortOrders="sortOrders" :activeSort="activeSort"/>
                 </div>
                 <span class="resize-handle"
                       @mousedown="dragSizeDown($event, item)" v-if="item.resizable && item.width > 0"></span>
@@ -40,10 +42,11 @@
                   :class="{'sticky-right': i === 0}"
                   :key="item.prop"
                   :style="getSticky(item, head.right.length - 1 - i)">
-                  <div class="stability-table-cell" :class="getCellClass(item)">
-                    <slot name="headerText" :column="item">
-                      <div class="text-content" :title="item.label">{{item.label}}</div>
-                    </slot>
+                  <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
+                    <div class="text-content" :title="item.label">
+                      <slot name="headerText" :column="item">{{item.label}}</slot>
+                    </div>
+                    <Sort v-if="item.sortable" :sort="item.prop" :sortOrders="sortOrders" :activeSort="activeSort" />
                   </div>
                   <span class="resize-handle" @mousedown="dragSizeDown($event, item)" v-if="item.resizable && item.width > 0"></span>
                 </th>
@@ -54,17 +57,18 @@
             <template v-for="(row, i) in rows">
               <tr class="stability-wrapper-table-tbody-tr" :key="row[rowKey]" @click="trClick(row, expandKey(i))">
                 <td sticky="left"
-                    v-for="(item, i) in head.left"
-                    :class="{'sticky-left': i === head.left.length - 1}" 
+                    v-for="(item, j) in head.left"
+                    :class="{'sticky-left': j === head.left.length - 1}" 
                     :key="item.prop"
-                    :style="getSticky(item, i)" >
-                    <div class="stability-table-cell" :class="getCellClass(item)">
+                    :style="getSticky(item, j)">
+                    <div class="stability-table-cell cell-flex" :class="getCellClass(item)">
+                      <span v-if="j === 0" :style="{width: row._treeIndex_ * 17 + 'px'}"></span>
+                      <open-icon :active="tree[row[rowKey]]" v-if="j === 0 && row[childrenColumnName] && row[childrenColumnName].length" @click.native="treeOpen(row, expandKey(i))" />
                       <slot name="content" :row="row" :column="item" :content="row[item.prop]" :rowIndex="expandKey(i)">
                         <div class="text-content" :title="row[item.prop]">{{row[item.prop]}}</div>
                       </slot>
                     </div>
                 </td>
-
                 <td v-if="virtualScrollX"></td>
                 <td v-for="item in cols" :key="item.prop">
                   <div class="stability-table-cell" :class="getCellClass(item)">
@@ -112,13 +116,20 @@ import vueAgileScrollbar from 'vue-agile-scrollbar'
 import 'vue-agile-scrollbar/dist/style.css'
 import Virtual from './virtual.js'
 import dragMixin from './dragMixin'
+import sortMixin from './source/sortMixin'
+import { getAllRows, getAllRowsFind } from './utils'
+import Sort from './source/sort.vue'
+import openIcon from './source/openIcon.vue'
 
 export default {
-  components: { vueAgileScrollbar },
+  components: { vueAgileScrollbar, Sort, openIcon },
   props: props,
-  mixins: [dragMixin],
+  mixins: [dragMixin, sortMixin],
   data () {
     return {
+
+      // 所有行
+      allRows: [],
 
       head: {
         rowNumber: 1,
@@ -130,7 +141,11 @@ export default {
       rows: [],
       cols: [],
 
-      expand: {},
+      // 记录扩展行展开
+      expand: null,
+
+      // 记录数展开记录
+      tree: {},
 
       virtualScrollX: null,
       virtualScrollY: null,
@@ -138,12 +153,14 @@ export default {
       // Y轴滚动条顶部偏移量
       offsetTop: 0,
 
-
+      // 固定列类型
       stickyType: ''
     }
   },
 
   computed: {
+
+    // 滚动条左边偏移
     offsetLeft () {
       let num = 5
       this.head.left.forEach(o => {
@@ -152,6 +169,7 @@ export default {
       return num
     },
 
+    // 滚动条右边偏移
     offsetRight () {
       let num = 5
       this.head.right.forEach(o => {
@@ -182,8 +200,10 @@ export default {
 
       this.setHead()
 
+      this.allRows = this.dataSource.slice(0)
+
       this.virtual = new Virtual({
-        rowsNum: this.dataSource.length,
+        rowsNum: this.allRows.length,
         colsNum: this.head.middle.length,
 
         // 单行平均高度
@@ -262,12 +282,13 @@ export default {
 
     // 设置行数据
     setRows (scrollTop) {
-      let rowsRegion = this.virtual.getRowsRegion(scrollTop, this.expand, this.$refs.virtualBottom, this.$refs.virtualTop)
+      let rowsRegion = this.virtual.getRowsRegion(scrollTop, this.expand)
       if (rowsRegion) {
         this.virtualScrollY = rowsRegion
-        this.rows = this.dataSource.slice(this.virtualScrollY.start, this.virtualScrollY.end)
+        this.rows = this.allRows.slice(this.virtualScrollY.start, this.virtualScrollY.end)
       } else if (rowsRegion === null) {
-        this.rows = this.dataSource
+        this.rows = this.allRows
+        this.virtualScrollY = null
       }
     },
 
@@ -328,9 +349,11 @@ export default {
       if (this.virtualScrollX) {
         this.setCols(v.left)
       }
-      if (this.virtualScrollY) {
+      if (this.virtualScrollY || this.isUpdateRows) {
         this.setRows(v.top)
+        this.isUpdateRows = false
       }
+      this.scrollTop = v.top
     },
 
     trClick (row, rowIndex) {
@@ -345,6 +368,7 @@ export default {
              this.expand[rowIndex] = this.$refs[row[this.rowKey] + 'expand'][0].offsetHeight
           }
         })
+        this.$emit('on-expand-change', row, this.expand[rowIndex])
       }
     },
 
@@ -372,13 +396,43 @@ export default {
 
     scrollHit (v) {
       this.stickyType = v
+    },
+
+    // 展开子行
+    treeOpen (row, rowIndex) {
+      let rowKey = row[this.rowKey]
+      let childrenList = row[this.childrenColumnName]
+      if (!this.tree[rowKey]) {
+        this.$set(this.tree, rowKey, true)
+
+        childrenList.forEach(o => {
+          let rowTreeIndex = row['_treeIndex_']
+          rowTreeIndex ? o['_treeIndex_'] = rowTreeIndex + 1 : o['_treeIndex_'] = 1
+        })
+
+        this.allRows.splice(rowIndex + 1, 0, ...childrenList)
+      } else {
+        this.tree[rowKey] = false
+        this.allRows.splice(rowIndex + 1, childrenList.length)
+      }
+
+      this.isUpdateRows = true
+      this.virtual.opts.rowsNum = this.allRows.length
+
+      // 重新获取行数据
+      if (this.virtualScrollY) {
+        this.virtualScrollY = this.virtual.upRowsRegion(this.expand)
+        this.rows = this.allRows.slice(this.virtualScrollY.start, this.virtualScrollY.end)
+      } else {
+        this.rows = this.allRows
+      }
     }
   }
 }
 </script>
 
 <style lang="less">
-.vue-stability-table {
+.stability-table {
   height: 100%;
   * {
     box-sizing: border-box;
@@ -387,7 +441,7 @@ export default {
     user-select: none;
     -webkit-user-select: none;
   }
-  .vue-stability-table-wrapper {
+  .stability-table-wrapper {
     height: 100%;
     position: relative;
     .darg-size-ruler {
@@ -414,7 +468,7 @@ export default {
           position: relative;
           width: 100%;
           .text-content {
-            width: 100%;
+            max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -424,10 +478,22 @@ export default {
           }
           &.align-center {
             text-align: center;
+            &.cell-flex {
+              justify-content: center
+            }
           }
           &.align-right {
             text-align: right;
+            &.cell-flex {
+              justify-content: right;
+            }
           }
+        }
+      }
+      .cell-flex {
+        display: flex;
+        &.sortable-column {
+          cursor: pointer;
         }
       }
       tr {
@@ -501,6 +567,7 @@ export default {
               background-color: #688ff4;
             }
           }
+          
         }
       }
       .stability-wrapper-table-tbody-tr {

@@ -60,8 +60,8 @@ class Virtual {
   // 获取行区间
   getRowsRegion (scrollTop, expand) {
 
-    // 总行数小于等于60行，默认不开启虚拟滚动
-    if (this.opts.rowsNum <= 60)  return null
+    // 总行数小于等于50行，默认不开启虚拟滚动
+    if (this.opts.rowsNum <= 50)  return null
 
     let start, end
 
@@ -84,7 +84,7 @@ class Virtual {
     } else if (scrollTop - this.scrollTop > overflowHeight) {
       let topDistance = this.topDistance
       for (let i = this.rowStart; i < rowsNum; i++) {
-        topDistance += rowSize + (expand[i] || 0)
+        topDistance += rowSize + ((expand && expand[i]) || 0)
         if (topDistance >= scrollTop) {
           start = i - Math.floor(pageSize / 3)
           end = start + pageSize
@@ -101,7 +101,7 @@ class Virtual {
       if (this.topDistance - scrollTop > 100) {
         let topDistance = this.topDistance
         for (let i = this.rowStart; i > pageSize; i--) {
-          topDistance -= rowSize + (expand[i] || 0)
+          topDistance -= rowSize + ((expand && expand[i]) || 0)
           if (topDistance <= scrollTop) {
             start = i - Math.floor(pageSize / 3)
             end = start + pageSize
@@ -148,6 +148,23 @@ class Virtual {
         bottom: this.bottomDistance
       }
     }
+  }
+
+  // 更新行区间
+  upRowsRegion () {
+
+    const rowsNum = this.opts.rowsNum
+
+    this.topDistance = this.rowStart * this.opts.rowSize
+    this.bottomDistance = (rowsNum - this.rowEnd) * this.opts.rowSize
+
+    return {
+      start: this.rowStart,
+      end: this.rowEnd,
+      top: this.topDistance,
+      bottom: this.bottomDistance
+    }
+
   }
 
 
