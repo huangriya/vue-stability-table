@@ -4,8 +4,8 @@
   <div>
     <section>
       <h3>基本用法 <button @click="setData">重新载入数据</button> <button @click="setColumn">改变列数据</button> <button @click="$refs.stabiltyTable.empty()">清空数据</button></h3>
-      <div style="height:500px;width:800px;">
-        <stabilityTable ref="stabiltyTable" :columns="columns" :dataSource="rows" :expandSize="100">
+      <div style="height:432px;width:800px;">
+        <stabilityTable ref="stabiltyTable" :columns="columns" :dataSource="rows" :expandSize="100" :openIconColumn="1">
           <!-- <template slot="content" slot-scope="{row, rowIndex}">
             {{row.id}}
           </template> -->
@@ -29,7 +29,8 @@ export default {
   data () {
     return {
       columns: [],
-      rows: []
+      rows: [],
+      show: false
     }
   },
   created () {
@@ -52,8 +53,12 @@ export default {
       columns.push({
         label: '表头' + i,
         prop: 'table' + i,
+        subProp: 'subTable' + i,
         resizable: true,
-        sortable: true
+        sortable: true,
+        formatter: function(str) {
+          return str + 'bba'
+        },
       })
     }
 
@@ -76,30 +81,36 @@ export default {
     })
 
     let rows = []
-    for (let i = 0; i < 541; i++) {
+    for (let i = 0; i < 50; i++) {
       let obj = {
         id: i,
         table: '是否' + i,
+        fixedTable2: '收到',
         table1: i,
         table2: i,
+        subTable1: '20%',
         children: []
       }
 
    
-      // for(let j = 0; j < 10; j++) {
-      //   obj.children.push({
-      //     id: i + 'ch' + j,
-      //     table: '啊师傅的asdfasdfas',
-      //     table1: '爱爱上爱上爱上爱上上',
-      //     table2: 'asfasdasfasdfsffsfasfasdasfasdfsffsf'
-      //   })
-      // }
+      for(let j = 0; j < 7; j++) {
+        obj.children.push({
+          id: i + 'ch' + j,
+          
+          table1: '爱爱上爱上爱上爱上上',
+          table2: 'asfasdasfasdfsffsfasfasdasfasdfsffsf'
+        })
+      }
       
       rows.push(obj)
     }
     
     this.columns = columns
     this.rows = rows
+
+    setTimeout(() => {
+      this.show = true
+    }, 3000)
   },
 
   methods: {
@@ -171,6 +182,10 @@ export default {
 
     sortChange () {
       
+    },
+
+    cellTextClick (col, row) {
+      console.log(col, row)
     }
   }
 }

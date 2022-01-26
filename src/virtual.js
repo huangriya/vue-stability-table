@@ -78,7 +78,7 @@ class Virtual {
     const pageSize = 30
     const overflowHeight = viewHeight / 2
 
-    if (scrollTop < (viewHeight * 1.5)) {
+    if (scrollTop < rowSize * 2) {
       start = 0
       end = pageSize
     } else if (scrollTop - this.scrollTop > overflowHeight) {
@@ -128,7 +128,11 @@ class Virtual {
     if (start < 0) {
       start = 0
     }
-      
+
+    if (end < pageSize) {
+      end = pageSize
+    }
+
     if (start !== undefined && 
       end !== undefined && 
       (start !== this.rowStart || end !== this.rowEnd)) {
@@ -156,7 +160,7 @@ class Virtual {
     const rowsNum = this.opts.rowsNum
 
     this.topDistance = this.rowStart * this.opts.rowSize
-    this.bottomDistance = (rowsNum - this.rowEnd) * this.opts.rowSize
+    this.bottomDistance = (rowsNum > this.rowEnd ? (rowsNum - this.rowEnd) : 0) * this.opts.rowSize
 
     return {
       start: this.rowStart,
@@ -165,6 +169,11 @@ class Virtual {
       bottom: this.bottomDistance
     }
 
+  }
+
+  emptyRowsRegion () {
+    this.rowStart = null
+    this.rowEnd = null
   }
 
 

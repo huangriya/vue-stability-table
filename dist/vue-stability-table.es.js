@@ -1,6 +1,7 @@
 const columns = {
   label: "",
   prop: "",
+  subProp: "",
   align: "left",
   fixed: false,
   key: "",
@@ -8,7 +9,9 @@ const columns = {
   width: 100,
   minWidth: 80,
   maxWidth: null,
-  formatter: null
+  formatter: null,
+  sortable: false,
+  colClass: ""
 };
 var props$1 = {
   columns: {
@@ -24,6 +27,10 @@ var props$1 = {
   childrenColumnName: {
     type: String,
     default: "children"
+  },
+  indentSize: {
+    type: Number,
+    default: 16
   },
   defaultExpandAllRows: {
     type: Boolean,
@@ -56,6 +63,10 @@ var props$1 = {
   emptyText: {
     type: String,
     default: "\u6682\u65E0\u6570\u636E"
+  },
+  openIconColumn: {
+    type: Number,
+    default: 0
   }
 };
 var props = {
@@ -87,10 +98,6 @@ var props = {
     type: Number,
     default: 10
   },
-  offsetHit: {
-    type: Number,
-    default: 10
-  },
   isAutoUpdate: {
     type: Boolean,
     default: true
@@ -104,7 +111,7 @@ var props = {
     default: 1
   }
 };
-var render$1 = function() {
+var render$3 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
@@ -114,7 +121,7 @@ var render$1 = function() {
     return _vm.scrollBarDown($event, "scrollBarY");
   } } }) : _vm._e()]);
 };
-var staticRenderFns$1 = [];
+var staticRenderFns$3 = [];
 function normalizeComponent$1(scriptExports, render2, staticRenderFns2, functionalTemplate, injectStyles, scopeId, moduleIdentifier, shadowMode) {
   var options = typeof scriptExports === "function" ? scriptExports.options : scriptExports;
   if (render2) {
@@ -166,7 +173,8 @@ function normalizeComponent$1(scriptExports, render2, staticRenderFns2, function
     options
   };
 }
-const __vue2_script$1 = {
+const __vue2_script$3 = {
+  name: "vueAgileScrollBar",
   props,
   data() {
     return {
@@ -278,24 +286,18 @@ const __vue2_script$1 = {
       return scrollTop;
     },
     onScroll(e) {
-      if (!this.ticking) {
-        window.requestAnimationFrame(() => {
-          const scrollTop = this.setScrollBarTop();
-          const scrollLeft = this.setScrollBarLeft();
-          this.$emit("scroll", {
-            top: scrollTop,
-            left: scrollLeft,
-            scrollWidth: this.scrollWidth,
-            scrollHeight: this.scrollHeight,
-            scrollContentWidth: this.scrollContentWidth,
-            scrollContentHeight: this.scrollContentHeight
-          }, e);
-          if (this._events["scroll-hit"]) {
-            this.onScrollHit(scrollTop, scrollLeft);
-          }
-          this.ticking = false;
-        });
-        this.ticking = true;
+      const scrollTop = this.setScrollBarTop();
+      const scrollLeft = this.setScrollBarLeft();
+      this.$emit("scroll", {
+        top: scrollTop,
+        left: scrollLeft,
+        scrollWidth: this.scrollWidth,
+        scrollHeight: this.scrollHeight,
+        scrollContentWidth: this.scrollContentWidth,
+        scrollContentHeight: this.scrollContentHeight
+      }, e);
+      if (this._events["scroll-hit"]) {
+        this.onScrollHit(scrollTop, scrollLeft);
       }
     },
     onScrollHit(scrollTop, scrollLeft) {
@@ -375,15 +377,15 @@ const __vue2_script$1 = {
     this.removeDragEvent();
   }
 };
-const __cssModules$1 = {};
-var __component__$1 = /* @__PURE__ */ normalizeComponent$1(__vue2_script$1, render$1, staticRenderFns$1, false, __vue2_injectStyles$1, null, null, null);
-function __vue2_injectStyles$1(context) {
-  for (let o in __cssModules$1) {
-    this[o] = __cssModules$1[o];
+const __cssModules$3 = {};
+var __component__$3 = /* @__PURE__ */ normalizeComponent$1(__vue2_script$3, render$3, staticRenderFns$3, false, __vue2_injectStyles$3, null, null, null);
+function __vue2_injectStyles$3(context) {
+  for (let o in __cssModules$3) {
+    this[o] = __cssModules$3[o];
   }
 }
 var vueAgileScrollbar = /* @__PURE__ */ function() {
-  return __component__$1.exports;
+  return __component__$3.exports;
 }();
 var style = "";
 class Virtual {
@@ -411,7 +413,7 @@ class Virtual {
     this.scrollLeft = 0;
   }
   getRowsRegion(scrollTop, expand) {
-    if (this.opts.rowsNum <= 60)
+    if (this.opts.rowsNum <= 50)
       return null;
     let start, end;
     let expandDistance = {
@@ -424,13 +426,13 @@ class Virtual {
     const viewHeight = this.opts.viewHeight;
     const pageSize = 30;
     const overflowHeight = viewHeight / 2;
-    if (scrollTop < viewHeight * 1.5) {
+    if (scrollTop < rowSize * 2) {
       start = 0;
       end = pageSize;
     } else if (scrollTop - this.scrollTop > overflowHeight) {
       let topDistance = this.topDistance;
       for (let i = this.rowStart; i < rowsNum; i++) {
-        topDistance += rowSize + (expand[i] || 0);
+        topDistance += rowSize + (expand && expand[i] || 0);
         if (topDistance >= scrollTop) {
           start = i - Math.floor(pageSize / 3);
           end = start + pageSize;
@@ -446,7 +448,7 @@ class Virtual {
       if (this.topDistance - scrollTop > 100) {
         let topDistance2 = this.topDistance;
         for (let i = this.rowStart; i > pageSize; i--) {
-          topDistance2 -= rowSize + (expand[i] || 0);
+          topDistance2 -= rowSize + (expand && expand[i] || 0);
           if (topDistance2 <= scrollTop) {
             start = i - Math.floor(pageSize / 3);
             end = start + pageSize;
@@ -470,6 +472,9 @@ class Virtual {
     if (start < 0) {
       start = 0;
     }
+    if (end < pageSize) {
+      end = pageSize;
+    }
     if (start !== void 0 && end !== void 0 && (start !== this.rowStart || end !== this.rowEnd)) {
       this.scrollTop = scrollTop;
       this.rowStart = start;
@@ -483,6 +488,21 @@ class Virtual {
         bottom: this.bottomDistance
       };
     }
+  }
+  upRowsRegion() {
+    const rowsNum = this.opts.rowsNum;
+    this.topDistance = this.rowStart * this.opts.rowSize;
+    this.bottomDistance = (rowsNum > this.rowEnd ? rowsNum - this.rowEnd : 0) * this.opts.rowSize;
+    return {
+      start: this.rowStart,
+      end: this.rowEnd,
+      top: this.topDistance,
+      bottom: this.bottomDistance
+    };
+  }
+  emptyRowsRegion() {
+    this.rowStart = null;
+    this.rowEnd = null;
   }
   getColRegion(scrollLeft) {
     const itemSize = this.opts.colSize;
@@ -577,52 +597,56 @@ var dragMixin = {
     this.removeDragEvent();
   }
 };
-var render = function() {
+var sortMixin = {
+  data() {
+    return {
+      activeSort: "",
+      sortOrders: ""
+    };
+  },
+  methods: {
+    sortChange(item) {
+      if (item.sortable) {
+        if (!this.activeSort || !this.sortOrders || this.sortOrders === "desc" || item.prop !== this.activeSort) {
+          this.sortOrders = "asc";
+        } else if (this.sortOrders === "asc") {
+          this.sortOrders = "desc";
+        }
+        this.activeSort = item.prop;
+        if (this._events["on-sort-change"]) {
+          this.$emit("on-sort-change", item.prop, this.sortOrders, item);
+        } else {
+          let allRows = this.dataSource.slice(0);
+          if (this.sortOrders) {
+            allRows.sort((o, p) => {
+              let a = o[item.prop], b = p[item.prop];
+              if (a === b)
+                return 0;
+              if (typeof a === typeof b && this.sortOrders === "asc") {
+                return a < b ? -1 : 1;
+              }
+              return a > b ? -1 : 1;
+            });
+          }
+          if (this.virtualScrollY) {
+            this.virtualScrollY = this.virtual.upRowsRegion(this.expand);
+            this.rows = allRows.slice(this.virtualScrollY.start, this.virtualScrollY.end);
+          } else {
+            this.rows = allRows;
+          }
+        }
+      }
+    }
+  }
+};
+var render$2 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _c("div", { staticClass: "vue-stability-table", class: { "not-user-select": _vm.dragSize.clientX } }, [_c("div", { ref: "tableBox", staticClass: "vue-stability-table-wrapper" }, [_c("vueAgileScrollbar", { ref: "scroll", attrs: { "dragSpeedY": 0.6, "offsetLeft": _vm.offsetLeft, "offsetRight": _vm.offsetRight, "offsetTop": _vm.offsetTop }, on: { "scroll": _vm.scroll, "updated": _vm.scrollUpdated, "scroll-hit": _vm.scrollHit } }, [_c("table", { staticClass: "stability-wrapper-table", class: {
-    "not-sticky": !_vm.stickyType,
-    "not-sticky-left": _vm.stickyType === "left",
-    "not-sticky-right": _vm.stickyType === "right"
-  }, attrs: { "cellpadding": "0", "cellspacing": "0" } }, [_c("thead", { ref: "tabelHead", staticClass: "stability-wrapper-table-head" }, [_c("tr", [_vm._l(_vm.head.left, function(item, i) {
-    return _c("th", { key: item.prop, class: { "sticky-left": i === _vm.head.left.length - 1 }, style: _vm.getSticky(item, i), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-th", class: _vm.getCellClass(item) }, [_vm._t("headerText", function() {
-      return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(_vm._s(item.label))])];
-    }, { "column": item })], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
-      return _vm.dragSizeDown($event, item);
-    } } }) : _vm._e()]);
-  }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.left + "px" } }) : _vm._e(), _vm._l(_vm.cols, function(item) {
-    return _c("th", { key: item.prop, style: _vm.getThStyle(item) }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("headerText", function() {
-      return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(_vm._s(item.label))])];
-    }, { "column": item })], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
-      return _vm.dragSizeDown($event, item);
-    } } }) : _vm._e()]);
-  }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.right + "px" } }) : _vm._e(), _vm._l(_vm.head.right, function(item, i) {
-    return _c("th", { key: item.prop, class: { "sticky-right": i === 0 }, style: _vm.getSticky(item, _vm.head.right.length - 1 - i), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("headerText", function() {
-      return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(_vm._s(item.label))])];
-    }, { "column": item })], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
-      return _vm.dragSizeDown($event, item);
-    } } }) : _vm._e()]);
-  })], 2)]), _c("tbody", [_vm.virtualScrollY ? _c("tr", { ref: "virtualTop", style: { height: _vm.virtualScrollY.top + "px" } }) : _vm._e(), _vm._l(_vm.rows, function(row, i) {
-    return [_c("tr", { key: row[_vm.rowKey], staticClass: "stability-wrapper-table-tbody-tr", on: { "click": function($event) {
-      _vm.trClick(row, _vm.expandKey(i));
-    } } }, [_vm._l(_vm.head.left, function(item, i2) {
-      return _c("td", { key: item.prop, class: { "sticky-left": i2 === _vm.head.left.length - 1 }, style: _vm.getSticky(item, i2), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
-        return [_c("div", { staticClass: "text-content", attrs: { "title": row[item.prop] } }, [_vm._v(_vm._s(row[item.prop]))])];
-      }, { "row": row, "column": item, "content": row[item.prop], "rowIndex": _vm.expandKey(i2) })], 2)]);
-    }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.cols, function(item) {
-      return _c("td", { key: item.prop }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
-        return [_c("div", { staticClass: "text-content", attrs: { "title": row[item.prop] } }, [_vm._v(_vm._s(row[item.prop]))])];
-      }, { "row": row, "column": item, "content": row[item.prop], "rowIndex": _vm.expandKey(i) })], 2)]);
-    }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.head.right, function(item, j) {
-      return _c("td", { key: item.prop, class: { "sticky-right": j === 0 }, style: _vm.getSticky(item, _vm.head.right.length - 1 - j), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
-        return [_c("div", { staticClass: "text-content", attrs: { "title": row[item.prop] } }, [_vm._v(_vm._s(row[item.prop]))])];
-      }, { "row": row, "column": item, "content": row[item.prop], "rowIndex": _vm.expandKey(i) })], 2)]);
-    })], 2), _vm.expand && _vm.expand[_vm.expandKey(i)] ? _c("tr", { key: row[_vm.rowKey] + "expand", ref: row[_vm.rowKey] + "expand", refInFor: true }, [_c("td", { attrs: { "colspan": _vm.columns.length } }, [_c("div", { staticClass: "tr-expand", style: { width: _vm.$refs.scroll.scrollWidth + "px" } }, [_vm._t("expand", null, { "row": row, "rowIndex": _vm.expandKey(i) })], 2)])]) : _vm._e()];
-  }), _vm.virtualScrollY ? _c("tr", { ref: "virtualBottom", style: { height: _vm.virtualScrollY.bottom + "px" } }) : _vm._e()], 2)])]), _c("div", { directives: [{ name: "show", rawName: "v-show", value: _vm.dragSize.clientX, expression: "dragSize.clientX" }], ref: "dargSizeRuler", staticClass: "darg-size-ruler", style: { left: _vm.dragSize.rulerLeft + "px", height: _vm.dragSize.height + "px" } })], 1)]);
+  return _c("span", { staticClass: "stability-table-column-sorter" }, [_c("span", { staticClass: "stability-table-column-sorter-inner" }, [_c("span", { staticClass: "stability-table-column-sorter-up", class: { "sort-act": _vm.sort && _vm.activeSort && _vm.sort === _vm.activeSort && _vm.sortOrders === "asc" }, attrs: { "role": "img" } }, [_c("svg", { attrs: { "focusable": "false", "width": "11", "height": "11", "fill": "currentColor", "aria-hidden": "true", "viewBox": "0 0 1024 1024" } }, [_c("path", { attrs: { "d": "M858.9 689L530.5 308.2c-9.4-10.9-27.5-10.9-37 0L165.1 689c-12.2 14.2-1.2 35 18.5 35h656.8c19.7 0 30.7-20.8 18.5-35z" } })])]), _c("span", { staticClass: "stability-table-column-sorter-down", class: { "sort-act": _vm.sort && _vm.activeSort && _vm.sort === _vm.activeSort && _vm.sortOrders === "desc" }, attrs: { "role": "img" } }, [_c("svg", { attrs: { "focusable": "false", "width": "11", "height": "11", "fill": "currentColor", "aria-hidden": "true", "viewBox": "0 0 1024 1024" } }, [_c("path", { attrs: { "d": "M840.4 300H183.6c-19.7 0-30.7 20.8-18.5 35l328.4 380.8c9.4 10.9 27.5 10.9 37 0L858.9 335c12.2-14.2 1.2-35-18.5-35z" } })])])])]);
 };
-var staticRenderFns = [];
-var stabilityTable_vue_vue_type_style_index_0_lang = "";
+var staticRenderFns$2 = [];
+var sort_vue_vue_type_style_index_0_lang = "";
 function normalizeComponent(scriptExports, render2, staticRenderFns2, functionalTemplate, injectStyles, scopeId, moduleIdentifier, shadowMode) {
   var options = typeof scriptExports === "function" ? scriptExports.options : scriptExports;
   if (render2) {
@@ -674,12 +698,164 @@ function normalizeComponent(scriptExports, render2, staticRenderFns2, functional
     options
   };
 }
+const __vue2_script$2 = {
+  props: {
+    sort: {
+      type: String,
+      default: ""
+    },
+    activeSort: {
+      type: String,
+      default: ""
+    },
+    sortOrders: {
+      type: String,
+      default: ""
+    }
+  },
+  data() {
+    return {};
+  },
+  methods: {}
+};
+const __cssModules$2 = {};
+var __component__$2 = /* @__PURE__ */ normalizeComponent(__vue2_script$2, render$2, staticRenderFns$2, false, __vue2_injectStyles$2, null, null, null);
+function __vue2_injectStyles$2(context) {
+  for (let o in __cssModules$2) {
+    this[o] = __cssModules$2[o];
+  }
+}
+var Sort = /* @__PURE__ */ function() {
+  return __component__$2.exports;
+}();
+var render$1 = function() {
+  var _vm = this;
+  var _h = _vm.$createElement;
+  var _c = _vm._self._c || _h;
+  return _c("i", { staticClass: "stability-table-open-icon", class: { "rotate-down": _vm.active } }, [_c("svg", { attrs: { "viewBox": "64 64 896 896", "data-icon": "right", "width": "10", "height": "10", "fill": "currentColor", "aria-hidden": "true", "focusable": "false" } }, [_c("path", { attrs: { "d": "M765.7 486.8L314.9 134.7A7.97 7.97 0 0 0 302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 0 0 0-50.4z" } })])]);
+};
+var staticRenderFns$1 = [];
+var openIcon_vue_vue_type_style_index_0_lang = "";
+const __vue2_script$1 = {
+  props: {
+    active: {
+      type: Boolean,
+      default: false
+    }
+  }
+};
+const __cssModules$1 = {};
+var __component__$1 = /* @__PURE__ */ normalizeComponent(__vue2_script$1, render$1, staticRenderFns$1, false, __vue2_injectStyles$1, null, null, null);
+function __vue2_injectStyles$1(context) {
+  for (let o in __cssModules$1) {
+    this[o] = __cssModules$1[o];
+  }
+}
+var openIcon = /* @__PURE__ */ function() {
+  return __component__$1.exports;
+}();
+const getAttrKeys = function(attrs) {
+  let dataAttr = {};
+  for (let i = 0; i < attrs.length; i++) {
+    let item = attrs[i];
+    let temp = {
+      key: item.name,
+      value: item.value
+    };
+    dataAttr[temp.key] = temp.value;
+  }
+  return dataAttr;
+};
+let fixEvent = function(e) {
+  if (!e.target) {
+    e.target = e.srcElement;
+    e.pageX = e.x;
+    e.pageY = e.y;
+  }
+  if (/mouseover/i.test(e.type) && !e.relatedTarget) {
+    e.relatedTarget = e.fromElement;
+  } else if (/mouseout/i.test(e.type) && !e.relatedTarget) {
+    e.relatedTarget = e.toElement;
+  }
+  return e;
+};
+const eventAgent = (evt, func) => {
+  const evt1 = fixEvent(evt);
+  const actEl = evt1.currentTarget;
+  let el = evt1.target, actionType, isFind, attr;
+  while (el && el !== actEl) {
+    actionType = el.getAttribute("event-agent") || "";
+    actionType = actionType.trim().toLowerCase().split(",");
+    if (actionType.indexOf(evt1.type.toLowerCase()) !== -1) {
+      attr = getAttrKeys(el.attributes);
+      isFind = true;
+      break;
+    }
+    el = el.parentNode;
+  }
+  isFind && func && func(el, attr);
+};
+var render = function() {
+  var _vm = this;
+  var _h = _vm.$createElement;
+  var _c = _vm._self._c || _h;
+  return _c("div", { staticClass: "stability-table", class: { "not-user-select": _vm.dragSize.clientX } }, [_c("div", { ref: "tableBox", staticClass: "stability-table-wrapper" }, [_c("vueAgileScrollbar", { ref: "scroll", attrs: { "dragSpeedY": 0.6, "offsetLeft": _vm.offsetLeft, "offsetRight": _vm.offsetRight, "offsetTop": _vm.offsetTop }, on: { "scroll": _vm.scroll, "updated": _vm.scrollUpdated, "scroll-hit": _vm.scrollHit } }, [_c("table", { staticClass: "stability-wrapper-table", class: {
+    "not-sticky": !_vm.stickyType,
+    "not-sticky-left": _vm.stickyType === "left",
+    "not-sticky-right": _vm.stickyType === "right"
+  }, attrs: { "cellpadding": "0", "cellspacing": "0" }, on: { "click": _vm.tableClcik } }, [_c("thead", { ref: "tabelHead", staticClass: "stability-wrapper-table-head" }, [_c("tr", [_vm._l(_vm.head.left, function(item, i) {
+    return _c("th", { key: item.prop, class: { "sticky-left": i === _vm.head.left.length - 1 }, style: _vm.getSticky(item, i), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
+      return _vm.sortChange(item);
+    } } }, [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._t("headerText", function() {
+      return [_vm._v(_vm._s(item.label))];
+    }, { "column": item })], 2), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 1), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
+      return _vm.dragSizeDown($event, item);
+    } } }) : _vm._e()]);
+  }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.left + "px" } }) : _vm._e(), _vm._l(_vm.cols, function(item) {
+    return _c("th", { key: item.prop, style: _vm.getThStyle(item) }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
+      return _vm.sortChange(item);
+    } } }, [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._t("headerText", function() {
+      return [_vm._v(_vm._s(item.label))];
+    }, { "column": item })], 2), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 1), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
+      return _vm.dragSizeDown($event, item);
+    } } }) : _vm._e()]);
+  }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.right + "px" } }) : _vm._e(), _vm._l(_vm.head.right, function(item, i) {
+    return _c("th", { key: item.prop, class: { "sticky-right": i === 0 }, style: _vm.getSticky(item, _vm.head.right.length - 1 - i), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
+      return _vm.sortChange(item);
+    } } }, [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._t("headerText", function() {
+      return [_vm._v(_vm._s(item.label))];
+    }, { "column": item })], 2), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 1), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
+      return _vm.dragSizeDown($event, item);
+    } } }) : _vm._e()]);
+  })], 2)]), _c("tbody", [_vm.virtualScrollY ? _c("tr", { ref: "virtualTop", style: { height: _vm.virtualScrollY.top + "px" } }) : _vm._e(), _vm._l(_vm.rows, function(row, i) {
+    return [_c("tr", { key: row[_vm.rowKey], staticClass: "stability-wrapper-table-tbody-tr", on: { "click": function($event) {
+      _vm.trClick(row, _vm.expandKey(i));
+    } } }, [_vm._l(_vm.head.left, function(item, j) {
+      return _c("td", { key: item.prop, class: { "sticky-left": j === _vm.head.left.length - 1 }, style: _vm.getSticky(item, j), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item) }, [j === _vm.openIconColumn ? _c("span", { style: { width: row._treeIndex_ * 17 + "px" } }) : _vm._e(), j === _vm.openIconColumn && row[_vm.childrenColumnName] && row[_vm.childrenColumnName].length ? _c("open-icon", { attrs: { "active": _vm.tree[row[_vm.rowKey]] }, nativeOn: { "click": function($event) {
+        _vm.treeOpen(row, _vm.expandKey(i));
+      } } }) : _vm._e(), _vm._t("content", function() {
+        return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": j } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
+      }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
+    }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.cols, function(item, j) {
+      return _c("td", { key: item.prop }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
+        return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": _vm.head.left.length + j + (_vm.virtualScrollX ? _vm.virtualScrollX.start : 0) } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
+      }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
+    }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.head.right, function(item, j) {
+      return _c("td", { key: item.prop, class: { "sticky-right": j === 0 }, style: _vm.getSticky(item, _vm.head.right.length - 1 - j), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
+        return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": _vm.head.left.length + _vm.head.middle.length + j } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
+      }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
+    })], 2), _vm.expand && _vm.expand[_vm.expandKey(i)] ? _c("tr", { key: row[_vm.rowKey] + "expand", ref: row[_vm.rowKey] + "expand", refInFor: true }, [_c("td", { attrs: { "colspan": _vm.columns.length } }, [_c("div", { staticClass: "tr-expand", style: { width: _vm.$refs.scroll.scrollWidth + "px" } }, [_vm._t("expand", null, { "row": row, "rowIndex": _vm.expandKey(i) })], 2)])]) : _vm._e()];
+  }), _vm.virtualScrollY ? _c("tr", { ref: "virtualBottom", style: { height: _vm.virtualScrollY.bottom + "px" } }) : _vm._e()], 2)])]), _c("div", { directives: [{ name: "show", rawName: "v-show", value: _vm.dragSize.clientX, expression: "dragSize.clientX" }], ref: "dargSizeRuler", staticClass: "darg-size-ruler", style: { left: _vm.dragSize.rulerLeft + "px", height: _vm.dragSize.height + "px" } })], 1)]);
+};
+var staticRenderFns = [];
+var stabilityTable_vue_vue_type_style_index_0_lang = "";
 const __vue2_script = {
-  components: { vueAgileScrollbar },
+  components: { vueAgileScrollbar, Sort, openIcon },
   props: props$1,
-  mixins: [dragMixin],
+  mixins: [dragMixin, sortMixin],
   data() {
     return {
+      allRows: [],
       head: {
         rowNumber: 1,
         left: [],
@@ -688,7 +864,8 @@ const __vue2_script = {
       },
       rows: [],
       cols: [],
-      expand: {},
+      expand: null,
+      tree: {},
       virtualScrollX: null,
       virtualScrollY: null,
       offsetTop: 0,
@@ -728,8 +905,9 @@ const __vue2_script = {
       if (!this.dataSource.length || !this.columns.length)
         return;
       this.setHead();
+      this.allRows = this.dataSource.slice(0);
       this.virtual = new Virtual({
-        rowsNum: this.dataSource.length,
+        rowsNum: this.allRows.length,
         colsNum: this.head.middle.length,
         rowSize: this.rowSize,
         colSize: this.colSize
@@ -756,41 +934,50 @@ const __vue2_script = {
     setHead(cols) {
       const columns2 = cols || this.columns;
       let left = [], middle = [], right = [], columnsLen = columns2.length, start = null, end = null;
-      for (let i = 0, j = columnsLen - 1; j >= 0; i++, j--) {
+      for (let i = 0; i < columnsLen; i++) {
         const startItem = columns2[i];
-        const endItem = columns2[j];
         if (startItem.fixed) {
           startItem.fixed = "left";
           left.push(startItem);
         } else {
           start = i;
+          break;
         }
+      }
+      for (let j = columnsLen - 1; j >= 0; j--) {
+        const endItem = columns2[j];
         if (endItem.fixed) {
           endItem.fixed = "right";
           right.unshift(endItem);
         } else {
           end = j;
-        }
-        if (start !== null && end !== null)
           break;
+        }
       }
-      middle = start !== 0 && end !== columnsLen ? columns2.slice(start, end + 1) : columns2;
+      middle = columns2.slice(start, end + 1);
       this.head = {
         left,
         middle,
         right
       };
+      this.setOffsetTop();
+    },
+    setOffsetTop() {
       if (this.$refs.tabelHead) {
         this.offsetTop = this.$refs.tabelHead.offsetHeight + 5;
       }
     },
     setRows(scrollTop) {
-      let rowsRegion = this.virtual.getRowsRegion(scrollTop, this.expand, this.$refs.virtualBottom, this.$refs.virtualTop);
+      let rowsRegion = this.virtual.getRowsRegion(scrollTop, this.expand);
       if (rowsRegion) {
-        this.virtualScrollY = rowsRegion;
-        this.rows = this.dataSource.slice(this.virtualScrollY.start, this.virtualScrollY.end);
+        const virtualScrollY = rowsRegion;
+        this.rows = this.allRows.slice(virtualScrollY.start, virtualScrollY.end);
+        this.virtualScrollY = virtualScrollY;
+        console.log(this.virtualScrollY, this.virtual.opts);
       } else if (rowsRegion === null) {
-        this.rows = this.dataSource;
+        this.rows = this.allRows;
+        this.virtualScrollY = null;
+        this.virtual.emptyRowsRegion();
       }
     },
     setCols(scrollLeft) {
@@ -801,6 +988,13 @@ const __vue2_script = {
       } else if (colsRegion === null) {
         this.cols = this.head.middle;
       }
+    },
+    getContent(row, col) {
+      let text = row[col.prop];
+      if (col.formatter && typeof col.formatter === "function" && text) {
+        return col.formatter(text);
+      }
+      return text;
     },
     getThStyle(item) {
       let obj = {
@@ -836,9 +1030,11 @@ const __vue2_script = {
       if (this.virtualScrollX) {
         this.setCols(v.left);
       }
-      if (this.virtualScrollY) {
+      if (this.virtualScrollY || this.isUpdateRows) {
         this.setRows(v.top);
+        this.isUpdateRows = false;
       }
+      this.scrollTop = v.top;
     },
     trClick(row, rowIndex) {
       if (this.expand) {
@@ -852,6 +1048,7 @@ const __vue2_script = {
             this.expand[rowIndex] = this.$refs[row[this.rowKey] + "expand"][0].offsetHeight;
           }
         });
+        this.$emit("on-expand-change", row, this.expand[rowIndex]);
       }
     },
     expandKey(i) {
@@ -876,6 +1073,42 @@ const __vue2_script = {
     },
     scrollHit(v) {
       this.stickyType = v;
+    },
+    treeOpen(row, rowIndex) {
+      let rowKey = row[this.rowKey];
+      let childrenList = row[this.childrenColumnName];
+      if (!this.tree[rowKey]) {
+        this.$set(this.tree, rowKey, true);
+        childrenList.forEach((o) => {
+          let rowTreeIndex = row["_treeIndex_"];
+          rowTreeIndex ? o["_treeIndex_"] = rowTreeIndex + 1 : o["_treeIndex_"] = 1;
+        });
+        this.allRows.splice(rowIndex + 1, 0, ...childrenList);
+      } else {
+        this.tree[rowKey] = false;
+        this.allRows.splice(rowIndex + 1, childrenList.length);
+      }
+      this.isUpdateRows = true;
+      this.virtual.opts.rowsNum = this.allRows.length;
+      if (this.virtualScrollY) {
+        this.virtualScrollY = this.virtual.upRowsRegion(this.expand);
+        this.rows = this.allRows.slice(this.virtualScrollY.start, this.virtualScrollY.end);
+      } else {
+        this.rows = this.allRows;
+      }
+    },
+    doLayout() {
+      this.setOffsetTop();
+      this.$refs.scroll.updated();
+    },
+    tableClcik(event) {
+      if (this._events["cell-text-click"]) {
+        eventAgent(event, (e, attr) => {
+          const rowIndex = attr["row-index"];
+          const colIndex = attr["col-index"];
+          this.$emit("cell-text-click", this.columns[colIndex], this.allRows[rowIndex], e);
+        });
+      }
     }
   }
 };
