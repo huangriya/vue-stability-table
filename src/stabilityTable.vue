@@ -6,7 +6,7 @@
               class="stability-wrapper-table"
               :class="{'not-sticky': !stickyType, 
                       'not-sticky-left': stickyType === 'left',
-                      'not-sticky-right': stickyType === 'right'}">
+                      'not-sticky-right': stickyType === 'right'}" @click="tableClcik">
           <thead class="stability-wrapper-table-head" ref="tabelHead">
             <tr>
               <th sticky="left"
@@ -23,7 +23,7 @@
                         class="resize-handle" v-if="item.resizable && item.width > 0"></span>
               </th>
               <td v-if="virtualScrollX" :style="{'width': virtualScrollX.left + 'px'}"></td>
-              <th v-for="item in cols" 
+              <th v-for="item in cols"
                   :key="item.prop"
                   :style="getThStyle(item)">
                 <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
@@ -58,22 +58,42 @@
               <tr class="stability-wrapper-table-tbody-tr" :key="row[rowKey]" @click="trClick(row, expandKey(i))">
                 <td sticky="left"
                     v-for="(item, j) in head.left"
-                    :class="{'sticky-left': j === head.left.length - 1}" 
+                    :class="{'sticky-left': j === head.left.length - 1}"
                     :key="item.prop"
                     :style="getSticky(item, j)">
                     <div class="stability-table-cell cell-flex" :class="getCellClass(item)">
-                      <span v-if="j === 0" :style="{width: row._treeIndex_ * 17 + 'px'}"></span>
-                      <open-icon :active="tree[row[rowKey]]" v-if="j === 0 && row[childrenColumnName] && row[childrenColumnName].length" @click.native="treeOpen(row, expandKey(i))" />
-                      <slot name="content" :row="row" :column="item" :content="row[item.prop]" :rowIndex="expandKey(i)">
-                        <div class="text-content" :title="row[item.prop]">{{row[item.prop]}}</div>
+                      <span v-if="j === openIconColumn" :style="{width: row._treeIndex_ * 17 + 'px'}"></span>
+                      <open-icon :active="tree[row[rowKey]]" v-if="j === openIconColumn && row[childrenColumnName] && row[childrenColumnName].length" @click.native="treeOpen(row, expandKey(i))" />
+                      <slot name="content" :row="row" :column="item" :content="getContent(row, item)" :rowIndex="expandKey(i)">
+                        <div class="text-content"
+                            :title="getContent(row, item)"
+                            event-agent="click"
+                            :row-index="expandKey(i)"
+                            :col-index="j">
+                          {{getContent(row, item)}}
+                          <template v-if="item.subProp">
+                            <br>
+                            <span class="sub-text-content">{{row[item.subProp]}}</span>
+                          </template>
+                        </div>
                       </slot>
                     </div>
                 </td>
                 <td v-if="virtualScrollX"></td>
-                <td v-for="item in cols" :key="item.prop">
+                <td v-for="(item, j) in cols" :key="item.prop">
                   <div class="stability-table-cell" :class="getCellClass(item)">
-                    <slot name="content" :row="row" :column="item" :content="row[item.prop]" :rowIndex="expandKey(i)">
-                      <div class="text-content" :title="row[item.prop]">{{row[item.prop]}}</div>
+                    <slot name="content" :row="row" :column="item" :content="getContent(row, item)" :rowIndex="expandKey(i)">
+                      <div class="text-content"
+                          :title="getContent(row, item)"
+                          event-agent="click"
+                          :row-index="expandKey(i)"
+                          :col-index="head.left.length + j + (virtualScrollX ? virtualScrollX.start : 0)">
+                          {{getContent(row, item)}}
+                          <template v-if="item.subProp">
+                            <br>
+                            <span class="sub-text-content">{{row[item.subProp]}}</span>
+                          </template>
+                        </div>
                     </slot>
                   </div>
                 </td>
@@ -85,8 +105,18 @@
                     :key="item.prop"
                     :style="getSticky(item, head.right.length - 1 - j)">
                   <div class="stability-table-cell" :class="getCellClass(item)">
-                    <slot name="content" :row="row" :column="item" :content="row[item.prop]" :rowIndex="expandKey(i)">
-                      <div class="text-content" :title="row[item.prop]">{{row[item.prop]}}</div>
+                    <slot name="content" :row="row" :column="item" :content="getContent(row, item)" :rowIndex="expandKey(i)">
+                      <div class="text-content" 
+                          :title="getContent(row, item)"
+                          event-agent="click"
+                          :row-index="expandKey(i)"
+                          :col-index="head.left.length + head.middle.length + j">
+                          {{getContent(row, item)}}
+                          <template v-if="item.subProp">
+                            <br>
+                            <span class="sub-text-content">{{row[item.subProp]}}</span>
+                          </template>
+                      </div>
                     </slot>
                   </div>
                 </td>
@@ -117,9 +147,9 @@ import 'vue-agile-scrollbar/dist/style.css'
 import Virtual from './virtual.js'
 import dragMixin from './dragMixin'
 import sortMixin from './source/sortMixin'
-import { getAllRows, getAllRowsFind } from './utils'
 import Sort from './source/sort.vue'
 import openIcon from './source/openIcon.vue'
+import { eventAgent } from 'event-agent'
 
 export default {
   components: { vueAgileScrollbar, Sort, openIcon },
@@ -244,29 +274,31 @@ export default {
       let left = [], middle = [], right = [], columnsLen = columns.length, start = null, end = null
 
       // 获取两边的固定列
-      for (let i = 0, j = columnsLen - 1; i < columnsLen, j >= 0; i++, j--) {
-        const startItem = columns[i]
-        const endItem = columns[j]
 
+      for (let i = 0; i < columnsLen; i++) {
+        const startItem = columns[i]
         if (startItem.fixed) {
           startItem.fixed = 'left'
           left.push(startItem)
         } else {
           start = i
+          break
         }
+      }
 
+      for (let j = columnsLen - 1; j >= 0; j--) {
+        const endItem = columns[j]
         if (endItem.fixed) {
           endItem.fixed = 'right'
           right.unshift(endItem)
         } else {
           end = j
+          break
         }
-
-        if (start !== null && end !== null) break
       }
       
       // 获取非固定列
-      middle = start !== 0 && end !== columnsLen ? columns.slice(start, end + 1) : columns
+      middle = columns.slice(start, end + 1)
 
       this.head = {
         left: left,
@@ -275,6 +307,12 @@ export default {
       }
 
       // 设置y轴滚动条偏移量
+      this.setOffsetTop()
+      
+    },
+
+    // 设置y轴滚动条偏移量
+    setOffsetTop () {
       if (this.$refs.tabelHead) {
         this.offsetTop = this.$refs.tabelHead.offsetHeight + 5
       }
@@ -284,11 +322,14 @@ export default {
     setRows (scrollTop) {
       let rowsRegion = this.virtual.getRowsRegion(scrollTop, this.expand)
       if (rowsRegion) {
-        this.virtualScrollY = rowsRegion
-        this.rows = this.allRows.slice(this.virtualScrollY.start, this.virtualScrollY.end)
+        const virtualScrollY = rowsRegion
+        this.rows = this.allRows.slice(virtualScrollY.start, virtualScrollY.end)
+        this.virtualScrollY = virtualScrollY
+        console.log(this.virtualScrollY, this.virtual.opts)
       } else if (rowsRegion === null) {
         this.rows = this.allRows
         this.virtualScrollY = null
+        this.virtual.emptyRowsRegion()
       }
     },
 
@@ -301,6 +342,15 @@ export default {
       } else if (colsRegion === null) {
         this.cols = this.head.middle
       }
+    },
+
+    // 格式化显示内容
+    getContent (row, col) {
+      let text = row[col.prop]
+      if (col.formatter && typeof col.formatter === 'function' && text) {
+        return col.formatter(text)
+      }
+      return text
     },
     
     getThStyle (item) {
@@ -349,6 +399,7 @@ export default {
       if (this.virtualScrollX) {
         this.setCols(v.left)
       }
+
       if (this.virtualScrollY || this.isUpdateRows) {
         this.setRows(v.top)
         this.isUpdateRows = false
@@ -425,6 +476,23 @@ export default {
         this.rows = this.allRows.slice(this.virtualScrollY.start, this.virtualScrollY.end)
       } else {
         this.rows = this.allRows
+      }
+    },
+
+    // 表格重新布局
+    doLayout () {
+      this.setOffsetTop()
+      this.$refs.scroll.updated()
+    },
+
+    // 表格单元格文本点击事件
+    tableClcik (event) {
+      if (this._events['cell-text-click']) {
+        eventAgent(event, (e, attr) => {
+          const rowIndex = attr['row-index']
+          const colIndex = attr['col-index']
+          this.$emit('cell-text-click', this.columns[colIndex], this.allRows[rowIndex], e)
+        })
       }
     }
   }

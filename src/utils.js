@@ -1,25 +1,43 @@
-/**
- * 根据传入的数据获取所有行
- * @param {Array} dataSource 数据源
- * @param {String} childrenColumnName 树形数据名称
- */
-export const getAllRows = (dataSource, childrenColumnName = 'children') => {
-  let list = [], len = dataSource.length, isChildren
-  for (let i = 0, j = len - 1; i < len, j >= 0; i++, j--) {
-    if (dataSource[i][childrenColumnName] || dataSource[j][childrenColumnName]) {
-      isChildren = true
-      break
-    }
-    if (i > len / 2) break
+export const getAttrKeys = function (attrs) {
+  let dataAttr = {}
+  for (let i = 0; i < attrs.length; i++) {
+      let item = attrs[i]
+      let temp = {
+        key: item.name,
+        value: item.value
+      }
+      dataAttr[temp.key] = temp.value
   }
-  if (!isChildren) {
-    return dataSource
-  }
+  return dataAttr
 }
 
-export const getAllRowsFind = (dataSource, childrenColumnName = 'children') => {
-  let list = [], len = dataSource.length, isChildren = dataSource.find(o => o[childrenColumnName])
-  if (!isChildren) {
-    return dataSource
+let fixEvent = function (e) {
+  if (!e.target) {
+    e.target = e.srcElement
+    e.pageX = e.x
+    e.pageY = e.y
   }
+  if (/mouseover/i.test(e.type) && !e.relatedTarget) {
+    e.relatedTarget = e.fromElement
+  } else if (/mouseout/i.test(e.type) && !e.relatedTarget) {
+    e.relatedTarget = e.toElement
+  }
+  return e
+}
+
+export const eventAgent = (evt, func) => {
+  const evt1 = fixEvent(evt)
+  const actEl = evt1.currentTarget
+  let el = evt1.target, actionType, isFind, attr
+  while (el && el !== actEl) {
+    actionType = el.getAttribute('event-agent') || ''
+    actionType = actionType.trim().toLowerCase().split(',')
+    if (actionType.indexOf(evt1.type.toLowerCase()) !== -1) {
+      attr = getAttrKeys(el.attributes)
+      isFind = true
+      break
+    }
+    el = el.parentNode
+  }
+  isFind && func && func(el, attr)
 }

@@ -5,6 +5,10 @@ export const columns = {
 
   // 表格内容对应的属性，支持多层访问：如 'user.address[0].city'
   prop: '',
+
+  // 表格内容对应的子属性
+  subProp: '',
+
   align: 'left',
   fixed: false,
   key: '',
@@ -18,7 +22,11 @@ export const columns = {
   // 格式化内容的函数
   formatter: null,
 
-  sortable: false
+  // 排序
+  sortable: false,
+
+  // 每一列的样式class
+  colClass: ''
 }
 
 export default {
@@ -96,5 +104,11 @@ export default {
   emptyText: {
     type: String,
     default: '暂无数据'
+  },
+
+  // 展开图标显示列
+  openIconColumn: {
+    type: Number,
+    default: 0
   }
 }
