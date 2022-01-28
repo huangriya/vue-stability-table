@@ -1,7 +1,15 @@
 <template>
   <div class="stability-table" :class="{'not-user-select': dragSize.clientX}">
     <div class="stability-table-wrapper" ref="tableBox">
-      <vueAgileScrollbar ref="scroll" @scroll="scroll" :dragSpeedY="0.6" :offsetLeft="offsetLeft" :offsetRight="offsetRight" :offsetTop="offsetTop" @updated="scrollUpdated" @scroll-hit="scrollHit">
+      <vueAgileScrollbar 
+        ref="scroll" 
+        @scroll="scroll" 
+        :dragSpeedY="0.6" :displayType="scrollDisplayType"
+        :offsetLeft="offsetLeft" 
+        :offsetRight="offsetRight" 
+        :offsetTop="offsetTop" 
+        @updated="scrollUpdated" 
+        @scroll-hit="scrollHit">
         <table cellpadding="0" cellspacing="0"
               class="stability-wrapper-table"
               :class="{'not-sticky': !stickyType, 
@@ -162,7 +170,6 @@ export default {
       allRows: [],
 
       head: {
-        rowNumber: 1,
         left: [],
         middle: [],
         right: []
@@ -188,6 +195,15 @@ export default {
     }
   },
 
+  watch: {
+    columns (v) {
+      this.updateColumns(v)
+    },
+    dataSource (v) {
+      this.updateRows(v)
+    }
+  },
+
   computed: {
 
     // 滚动条左边偏移
@@ -209,39 +225,25 @@ export default {
     }
   },
 
-  watch: {
-    dataSource () {
-      this.empty()
-      this.$nextTick(() => {
-        this.init()
-      })
-    }
+  created () {
+    this.init()
   },
 
   mounted () {
-    this.init()
-    this.expand = this.$scopedSlots.expand ? {} : null
+    this.setOffsetTop()
   },
 
   methods: {
 
     init () {
+
       if (!this.dataSource.length || !this.columns.length) return
 
       this.setHead()
 
       this.allRows = this.dataSource.slice(0)
 
-      this.virtual = new Virtual({
-        rowsNum: this.allRows.length,
-        colsNum: this.head.middle.length,
-
-        // 单行平均高度
-        rowSize: this.rowSize,
-        
-        // 单列平均宽度
-        colSize: this.colSize
-      })
+      this.setVirtual()
       
       this.setCols(0)
       this.setRows(0)
@@ -249,27 +251,51 @@ export default {
 
     // 更新列数据
     updateColumns (columns) {
-      this.setHead(columns)
-      this.virtual.opts.colsNum = columns.length
-      this.setCols(this.virtual.scrollLeft)
-    },
-
-    // 清空表格
-    empty () {
       this.head = {
-        rowNumber: 1,
         left: [],
         middle: [],
         right: []
-      },
-      this.rows = []
+      }
       this.cols = []
-      this.virtualScrollX = null
-      this.virtualScrollY = null
+      this.setVirtual({
+        colsNum: columns.length
+      })
+      this.setHead(columns)
+      this.setCols(0)
+    },
+
+    // 更新行数据
+    updateRows () {
+      this.allRows = this.dataSource.slice(0)
+      this.setVirtual({
+        rowsNum: this.allRows.length
+      })
+      this.setRows(0)
+    },
+
+    // 设置虚拟滚动对象
+    setVirtual (opts = {}) {
+      if (!this.virtual) {
+        this.virtual = new Virtual({
+          rowsNum: this.dataSource.length,
+          colsNum: this.head.middle.length,
+
+          // 单行平均高度
+          rowSize: this.rowSize,
+          
+          // 单列平均宽度
+          colSize: this.colSize
+        })
+      } else {
+        for (let key in opts) {
+          this.virtual.opts[key] = opts[key]
+        }
+      }
     },
 
     // 设置表头数据
     setHead (cols) {
+
       const columns = cols || this.columns
       let left = [], middle = [], right = [], columnsLen = columns.length, start = null, end = null
 
@@ -325,7 +351,6 @@ export default {
         const virtualScrollY = rowsRegion
         this.rows = this.allRows.slice(virtualScrollY.start, virtualScrollY.end)
         this.virtualScrollY = virtualScrollY
-        console.log(this.virtualScrollY, this.virtual.opts)
       } else if (rowsRegion === null) {
         this.rows = this.allRows
         this.virtualScrollY = null
@@ -408,7 +433,10 @@ export default {
     },
 
     trClick (row, rowIndex) {
-      if (this.expand) {
+      if (this.$scopedSlots.expand) {
+        if (!this.expand) {
+          this.expand = {}
+        }
         if (!this.expand[rowIndex]) {
           this.$set(this.expand, rowIndex, true)
         } else {

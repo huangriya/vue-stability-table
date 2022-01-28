@@ -110,5 +110,11 @@ export default {
   openIconColumn: {
     type: Number,
     default: 0
+  },
+
+  // 滚动条展示类型
+  scrollDisplayType: {
+    type: String,
+    default: 'show'
   }
 }

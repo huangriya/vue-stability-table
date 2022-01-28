@@ -67,6 +67,10 @@ var props$1 = {
   openIconColumn: {
     type: Number,
     default: 0
+  },
+  scrollDisplayType: {
+    type: String,
+    default: "show"
   }
 };
 var props = {
@@ -81,6 +85,10 @@ var props = {
   scrollLeft: {
     type: [Number, Function],
     default: 0
+  },
+  displayType: {
+    type: String,
+    default: "hover"
   },
   offsetLeft: {
     type: Number,
@@ -115,7 +123,11 @@ var render$3 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _c("div", { ref: "scrollBox", staticClass: "vue-agile-scrollbar", class: { "not-user-select": _vm.scrollBarX.clientX || _vm.scrollBarY.clientY } }, [_c("div", { ref: "scroll", staticClass: "agile-scroll-content", on: { "scroll": _vm.onScroll } }, [_c("div", { ref: "scrollContent", staticClass: "agile-scroll-wrapper" }, [_vm._t("default")], 2)]), _vm.scrollBarX.show ? _c("div", { staticClass: "agile-scroll-bar-x", class: { act: _vm.scrollBarX.clientX || _vm.scrollBarY.clientY }, style: { left: _vm.scrollBarX.left + "px", width: _vm.scrollBarX.width + "px", bottom: _vm.scrollBarX.bottom }, on: { "mousedown": function($event) {
+  return _c("div", { ref: "scrollBox", staticClass: "vue-agile-scrollbar", class: {
+    "not-user-select": _vm.scrollBarX.clientX || _vm.scrollBarY.clientY,
+    "scrollbar-hover": _vm.displayType === "hover",
+    "scrollbar-hide": _vm.displayType === "hide"
+  } }, [_c("div", { ref: "scroll", staticClass: "agile-scroll-content", on: { "scroll": _vm.onScroll } }, [_c("div", { ref: "scrollContent", staticClass: "agile-scroll-wrapper" }, [_vm._t("default")], 2)]), _vm.scrollBarX.show ? _c("div", { staticClass: "agile-scroll-bar-x", class: { act: _vm.scrollBarX.clientX || _vm.scrollBarY.clientY }, style: { left: _vm.scrollBarX.left + "px", width: _vm.scrollBarX.width + "px", bottom: _vm.scrollBarX.bottom }, on: { "mousedown": function($event) {
     return _vm.scrollBarDown($event, "scrollBarX");
   } } }) : _vm._e(), _vm.scrollBarY.show ? _c("div", { staticClass: "agile-scroll-bar-y", class: { act: _vm.scrollBarY.clientY || _vm.scrollBarX.clientX }, style: { top: _vm.scrollBarY.top + "px", height: _vm.scrollBarY.height + "px" }, on: { "mousedown": function($event) {
     return _vm.scrollBarDown($event, "scrollBarY");
@@ -408,11 +420,82 @@ class Virtual {
     this.colStart = null;
     this.colEnd = null;
     this.rightDistance = 0;
-    this.screenRowSize = Math.floor(this.opts.viewHeight / this.opts.rowSize);
     this.scrollTop = 0;
     this.scrollLeft = 0;
   }
   getRowsRegion(scrollTop, expand) {
+    if (this.opts.rowsNum <= 50)
+      return null;
+    let start, end;
+    let expandDistance = {
+      top: 0,
+      middle: 0,
+      bottom: 0
+    };
+    const rowsNum = this.opts.rowsNum;
+    const rowSize = this.opts.rowSize;
+    const viewHeight = this.opts.viewHeight;
+    const pageSize = Math.ceil(viewHeight / rowSize);
+    if (expand) {
+      let topDistance = this.topDistance;
+      if (scrollTop > this.scrollTop) {
+        for (let i = this.rowStart || 0; i < rowsNum; i++) {
+          topDistance += rowSize + (expand && expand[i] || 0);
+          if (topDistance >= scrollTop) {
+            start = i;
+            end = start + pageSize;
+            break;
+          }
+        }
+      }
+      if (scrollTop < this.scrollTop && topDistance >= scrollTop) {
+        let midden = 0;
+        for (let i = this.rowStart; i < this.rowEnd; i++) {
+          midden += rowSize + (expand && expand[i] || 0);
+        }
+        let endDistance = 0;
+        for (const key in expand) {
+          if (key < this.rowEnd) {
+            endDistance += expand[key];
+          }
+        }
+        end = Math.floor((scrollTop + midden - endDistance) / rowSize);
+        if (end < pageSize)
+          end = pageSize;
+        start = end - pageSize;
+      }
+      for (const key in expand) {
+        if (key < start) {
+          expandDistance.top += expand[key];
+        } else if (key > end) {
+          expandDistance.bottom += expand[key];
+        }
+      }
+    } else {
+      start = Math.floor(scrollTop / rowSize);
+      end = start + pageSize;
+    }
+    if (end > rowsNum) {
+      end = rowsNum;
+    }
+    if (start < 0) {
+      start = 0;
+    }
+    if (start !== void 0 && end !== void 0 && (start !== this.rowStart || end !== this.rowEnd)) {
+      this.scrollTop = scrollTop;
+      this.rowStart = start;
+      this.rowEnd = end;
+      this.topDistance = this.rowStart * this.opts.rowSize + expandDistance.top;
+      this.bottomDistance = (rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom;
+      return {
+        start: this.rowStart,
+        end: this.rowEnd,
+        top: this.topDistance,
+        bottom: this.bottomDistance
+      };
+    }
+  }
+  getRowsRegionBar(scrollTop, expand) {
     if (this.opts.rowsNum <= 50)
       return null;
     let start, end;
@@ -799,7 +882,7 @@ var render = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _c("div", { staticClass: "stability-table", class: { "not-user-select": _vm.dragSize.clientX } }, [_c("div", { ref: "tableBox", staticClass: "stability-table-wrapper" }, [_c("vueAgileScrollbar", { ref: "scroll", attrs: { "dragSpeedY": 0.6, "offsetLeft": _vm.offsetLeft, "offsetRight": _vm.offsetRight, "offsetTop": _vm.offsetTop }, on: { "scroll": _vm.scroll, "updated": _vm.scrollUpdated, "scroll-hit": _vm.scrollHit } }, [_c("table", { staticClass: "stability-wrapper-table", class: {
+  return _c("div", { staticClass: "stability-table", class: { "not-user-select": _vm.dragSize.clientX } }, [_c("div", { ref: "tableBox", staticClass: "stability-table-wrapper" }, [_c("vueAgileScrollbar", { ref: "scroll", attrs: { "dragSpeedY": 0.6, "displayType": _vm.scrollDisplayType, "offsetLeft": _vm.offsetLeft, "offsetRight": _vm.offsetRight, "offsetTop": _vm.offsetTop }, on: { "scroll": _vm.scroll, "updated": _vm.scrollUpdated, "scroll-hit": _vm.scrollHit } }, [_c("table", { staticClass: "stability-wrapper-table", class: {
     "not-sticky": !_vm.stickyType,
     "not-sticky-left": _vm.stickyType === "left",
     "not-sticky-right": _vm.stickyType === "right"
@@ -857,7 +940,6 @@ const __vue2_script = {
     return {
       allRows: [],
       head: {
-        rowNumber: 1,
         left: [],
         middle: [],
         right: []
@@ -871,6 +953,14 @@ const __vue2_script = {
       offsetTop: 0,
       stickyType: ""
     };
+  },
+  watch: {
+    columns(v) {
+      this.updateColumns(v);
+    },
+    dataSource(v) {
+      this.updateRows(v);
+    }
   },
   computed: {
     offsetLeft() {
@@ -888,17 +978,11 @@ const __vue2_script = {
       return num;
     }
   },
-  watch: {
-    dataSource() {
-      this.empty();
-      this.$nextTick(() => {
-        this.init();
-      });
-    }
+  created() {
+    this.init();
   },
   mounted() {
-    this.init();
-    this.expand = this.$scopedSlots.expand ? {} : null;
+    this.setOffsetTop();
   },
   methods: {
     init() {
@@ -906,30 +990,43 @@ const __vue2_script = {
         return;
       this.setHead();
       this.allRows = this.dataSource.slice(0);
-      this.virtual = new Virtual({
-        rowsNum: this.allRows.length,
-        colsNum: this.head.middle.length,
-        rowSize: this.rowSize,
-        colSize: this.colSize
-      });
+      this.setVirtual();
       this.setCols(0);
       this.setRows(0);
     },
     updateColumns(columns2) {
-      this.setHead(columns2);
-      this.virtual.opts.colsNum = columns2.length;
-      this.setCols(this.virtual.scrollLeft);
-    },
-    empty() {
       this.head = {
-        rowNumber: 1,
         left: [],
         middle: [],
         right: []
-      }, this.rows = [];
+      };
       this.cols = [];
-      this.virtualScrollX = null;
-      this.virtualScrollY = null;
+      this.setVirtual({
+        colsNum: columns2.length
+      });
+      this.setHead(columns2);
+      this.setCols(0);
+    },
+    updateRows() {
+      this.allRows = this.dataSource.slice(0);
+      this.setVirtual({
+        rowsNum: this.allRows.length
+      });
+      this.setRows(0);
+    },
+    setVirtual(opts = {}) {
+      if (!this.virtual) {
+        this.virtual = new Virtual({
+          rowsNum: this.dataSource.length,
+          colsNum: this.head.middle.length,
+          rowSize: this.rowSize,
+          colSize: this.colSize
+        });
+      } else {
+        for (let key in opts) {
+          this.virtual.opts[key] = opts[key];
+        }
+      }
     },
     setHead(cols) {
       const columns2 = cols || this.columns;
@@ -973,7 +1070,6 @@ const __vue2_script = {
         const virtualScrollY = rowsRegion;
         this.rows = this.allRows.slice(virtualScrollY.start, virtualScrollY.end);
         this.virtualScrollY = virtualScrollY;
-        console.log(this.virtualScrollY, this.virtual.opts);
       } else if (rowsRegion === null) {
         this.rows = this.allRows;
         this.virtualScrollY = null;
@@ -1037,7 +1133,10 @@ const __vue2_script = {
       this.scrollTop = v.top;
     },
     trClick(row, rowIndex) {
-      if (this.expand) {
+      if (this.$scopedSlots.expand) {
+        if (!this.expand) {
+          this.expand = {};
+        }
         if (!this.expand[rowIndex]) {
           this.$set(this.expand, rowIndex, true);
         } else {
