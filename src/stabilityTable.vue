@@ -1,20 +1,23 @@
 <template>
   <div class="stability-table" :class="{'not-user-select': dragSize.clientX}">
     <div class="stability-table-wrapper" ref="tableBox">
-      <vueAgileScrollbar 
-        ref="scroll" 
-        @scroll="scroll" 
-        :dragSpeedY="0.6" :displayType="scrollDisplayType"
-        :offsetLeft="offsetLeft" 
-        :offsetRight="offsetRight" 
-        :offsetTop="offsetTop" 
-        @updated="scrollUpdated" 
+      <vueAgileScrollbar
+        ref="scroll"
+        @scroll="scroll"
+        :dragSpeedY="0.6"
+        :displayType="scrollDisplayType"
+        :offsetLeft="offsetLeft"
+        :offsetRight="offsetRight"
+        :offsetTop="offsetTop"
+        @updated="scrollUpdated"
         @scroll-hit="scrollHit">
-        <table cellpadding="0" cellspacing="0"
+        <table cellpadding="0"
+              cellspacing="0"
               class="stability-wrapper-table"
-              :class="{'not-sticky': !stickyType, 
+              :class="{'not-sticky': !stickyType,
                       'not-sticky-left': stickyType === 'left',
-                      'not-sticky-right': stickyType === 'right'}" @click="tableClcik">
+                      'not-sticky-right': stickyType === 'right'}"
+                      @click="tableClcik">
           <thead class="stability-wrapper-table-head" ref="tabelHead">
             <tr>
               <th sticky="left"
@@ -251,6 +254,7 @@ export default {
 
     // 更新列数据
     updateColumns (columns) {
+      this.$refs.scroll.setScrollLeft(0)
       this.head = {
         left: [],
         middle: [],
@@ -266,6 +270,7 @@ export default {
 
     // 更新行数据
     updateRows () {
+      this.$refs.scroll.setScrollTop(0)
       this.allRows = this.dataSource.slice(0)
       this.setVirtual({
         rowsNum: this.allRows.length
