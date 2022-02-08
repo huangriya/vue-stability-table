@@ -79,11 +79,11 @@ var props = {
     default: 50
   },
   scrollTop: {
-    type: [Number, Function],
+    type: Number,
     default: 0
   },
   scrollLeft: {
-    type: [Number, Function],
+    type: Number,
     default: 0
   },
   displayType: {
@@ -229,6 +229,8 @@ const __vue2_script$3 = {
     this.$scrollBox = this.$refs.scrollBox;
     this.$scroll = this.$refs.scroll;
     this.$scrollContent = this.$refs.scrollContent;
+    this.setScrollLeft();
+    this.setScrollTop();
     this.updated();
     if (this.isAutoUpdate) {
       this.observer = new MutationObserver(this.updated);
@@ -380,6 +382,16 @@ const __vue2_script$3 = {
     },
     removeDragEvent() {
       window.removeEventListener("mouseup", this.scrollBarUp);
+    },
+    setScrollLeft(number) {
+      if (number >= 0 || this.scrollLeft >= 0) {
+        this.$scroll.scrollLeft = number || this.scrollLeft;
+      }
+    },
+    setScrollTop(number) {
+      if (number >= 0 || this.scrollTop >= 0) {
+        this.$scroll.scrollTop = number || this.scrollTop;
+      }
     }
   },
   beforeDestroy() {
@@ -995,6 +1007,7 @@ const __vue2_script = {
       this.setRows(0);
     },
     updateColumns(columns2) {
+      this.$refs.scroll.setScrollLeft(0);
       this.head = {
         left: [],
         middle: [],
@@ -1008,6 +1021,7 @@ const __vue2_script = {
       this.setCols(0);
     },
     updateRows() {
+      this.$refs.scroll.setScrollTop(0);
       this.allRows = this.dataSource.slice(0);
       this.setVirtual({
         rowsNum: this.allRows.length
