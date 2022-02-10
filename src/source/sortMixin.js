@@ -22,7 +22,7 @@ export default {
         if (this._events['on-sort-change']) {
           this.$emit('on-sort-change', item.prop, this.sortOrders, item)
         } else {
-
+          
           let allRows = this.dataSource.slice(0)
           
           if (this.sortOrders) {
@@ -35,6 +35,9 @@ export default {
               return a > b ? -1 : 1
             })
           }
+          
+          this.tree = {}
+          this.allRows = allRows
 
           // 重新获取行数据
           if (this.virtualScrollY) {

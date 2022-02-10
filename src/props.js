@@ -26,7 +26,7 @@ export const columns = {
   sortable: false,
 
   // 每一列的样式class
-  colClass: ''
+  class: ''
 }
 
 export default {
@@ -70,12 +70,6 @@ export default {
     default: false
   },
 
-  // 表格行的类名
-  rowClassName: {
-    type: String,
-    default: ''
-  },
-
   // 表格行 key 的取值，可以是字符串或一个函数
   rowKey: {
     type: String,
@@ -86,12 +80,6 @@ export default {
   rowSize: {
     type: Number,
     default: 40
-  },
-
-  // 拓展行平均高度，虚拟滚动时用到
-  expandSize: {
-    type: Number,
-    default: null
   },
 
   // 单列平均宽度，虚拟滚动时用到

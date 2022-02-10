@@ -29,8 +29,7 @@ export default {
   data () {
     return {
       columns: [],
-      rows: [],
-      show: false
+      rows: []
     }
   },
   created () {
@@ -49,7 +48,7 @@ export default {
       resizable: true
     }]
     
-    for (let i = 0; i <= 10; i++) {
+    for (let i = 0; i <= 3; i++) {
       columns.push({
         label: '表头' + i,
         prop: 'table' + i,
@@ -81,7 +80,7 @@ export default {
     })
 
     let rows = []
-    for (let i = 0; i < 350; i++) {
+    for (let i = 0; i < 1000; i++) {
       let obj = {
         id: i,
         table: '是否' + i,
@@ -104,13 +103,12 @@ export default {
       
       rows.push(obj)
     }
-    
+    console.time('渲染用时')
     this.columns = columns
     this.rows = rows
-
-    setTimeout(() => {
-      this.show = true
-    }, 3000)
+    this.$nextTick(() => {
+      console.timeEnd('渲染用时')
+    })
   },
 
   methods: {
@@ -167,7 +165,7 @@ export default {
       })
 
       let rows = []
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 500000; i++) {
         rows.push({
           id: i,
           table: 'asfasdasfasdfsffsf',
@@ -175,9 +173,17 @@ export default {
           table2: 'asfasdasfasdfsffsfasfasdasfasdfsffsf'
         })
       }
+
+      
       
       this.columns = columns
+      console.time('time')
       this.rows = rows
+      // this.$refs.stabiltyTable.updateRows(rows)
+      this.$nextTick(()=>{
+        console.timeEnd('time')
+      })
+      
     },
 
     sortChange () {

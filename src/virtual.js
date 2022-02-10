@@ -54,6 +54,7 @@ class Virtual {
     this.scrollLeft = 0
   }
 
+  // 获取行区间
   getRowsRegion (scrollTop, expand) {
     // 总行数小于等于50行，默认不开启虚拟滚动
     if (this.opts.rowsNum <= 50)  return null
@@ -119,103 +120,6 @@ class Virtual {
 
     if (start < 0) {
       start = 0
-    }
-
-    if (start !== undefined && 
-      end !== undefined && 
-      (start !== this.rowStart || end !== this.rowEnd)) {
-      
-      this.scrollTop = scrollTop
-      
-      this.rowStart = start
-      this.rowEnd = end
-
-      this.topDistance = this.rowStart * this.opts.rowSize + expandDistance.top
-      this.bottomDistance = (rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom
-
-      return {
-        start: this.rowStart,
-        end: this.rowEnd,
-        top: this.topDistance,
-        bottom: this.bottomDistance
-      }
-    }
-  }
-
-  // 获取行区间
-  getRowsRegionBar (scrollTop, expand) {
-
-    // 总行数小于等于50行，默认不开启虚拟滚动
-    if (this.opts.rowsNum <= 50)  return null
-
-    let start, end
-
-    // 拓展展开溢出的高度
-    let expandDistance = {
-      top: 0,
-      middle: 0,
-      bottom: 0
-    }
-
-    const rowsNum = this.opts.rowsNum
-    const rowSize = this.opts.rowSize
-    const viewHeight = this.opts.viewHeight
-    const pageSize = 30
-    const overflowHeight = viewHeight / 2
-
-    if (scrollTop < rowSize * 2) {
-      start = 0
-      end = pageSize
-    } else if (scrollTop - this.scrollTop > overflowHeight) {
-      let topDistance = this.topDistance
-      for (let i = this.rowStart; i < rowsNum; i++) {
-        topDistance += rowSize + ((expand && expand[i]) || 0)
-        if (topDistance >= scrollTop) {
-          start = i - Math.floor(pageSize / 3)
-          end = start + pageSize
-          break
-        } 
-      }
-    } else if (this.scrollTop - scrollTop > overflowHeight) {
-      let topDistance = this.topDistance + overflowHeight
-      if (topDistance >= scrollTop) {
-        start = this.rowStart - Math.floor(pageSize / 3)
-        end = start + pageSize
-      }      
-
-      if (this.topDistance - scrollTop > 100) {
-        let topDistance = this.topDistance
-        for (let i = this.rowStart; i > pageSize; i--) {
-          topDistance -= rowSize + ((expand && expand[i]) || 0)
-          if (topDistance <= scrollTop) {
-            start = i - Math.floor(pageSize / 3)
-            end = start + pageSize
-            break
-          }
-        }
-      }
-    }
-
-    if (expand) {
-      for (const key in expand) {
-        if (key < start) {
-          expandDistance.top += expand[key]
-        } else if (key > end) {
-          expandDistance.bottom += expand[key]
-        }
-      }
-    }
-
-    if (end > rowsNum) {
-      end = rowsNum
-    }
-
-    if (start < 0) {
-      start = 0
-    }
-
-    if (end < pageSize) {
-      end = pageSize
     }
 
     if (start !== undefined && 

@@ -22,7 +22,7 @@
             <tr>
               <th sticky="left"
                   v-for="(item, i) in head.left" :key="item.prop"
-                  :class="{'sticky-left': i === head.left.length - 1}" 
+                  :class="[{'sticky-left': i === head.left.length - 1}, item.class]" 
                   :style="getSticky(item, i)">
                   <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
                     <div class="text-content" :title="item.label">
@@ -36,6 +36,7 @@
               <td v-if="virtualScrollX" :style="{'width': virtualScrollX.left + 'px'}"></td>
               <th v-for="item in cols"
                   :key="item.prop"
+                  :class="[item.class]"
                   :style="getThStyle(item)">
                 <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
                   <div class="text-content" :title="item.label">
@@ -50,7 +51,7 @@
 
               <th sticky="right"
                   v-for="(item, i) in head.right"
-                  :class="{'sticky-right': i === 0}"
+                  :class="[{'sticky-right': i === 0}, item.class]"
                   :key="item.prop"
                   :style="getSticky(item, head.right.length - 1 - i)">
                   <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
@@ -69,7 +70,7 @@
               <tr class="stability-wrapper-table-tbody-tr" :key="row[rowKey]" @click="trClick(row, expandKey(i))">
                 <td sticky="left"
                     v-for="(item, j) in head.left"
-                    :class="{'sticky-left': j === head.left.length - 1}"
+                    :class="[{'sticky-left': j === head.left.length - 1}, item.class]"
                     :key="item.prop"
                     :style="getSticky(item, j)">
                     <div class="stability-table-cell cell-flex" :class="getCellClass(item)">
@@ -91,7 +92,7 @@
                     </div>
                 </td>
                 <td v-if="virtualScrollX"></td>
-                <td v-for="(item, j) in cols" :key="item.prop">
+                <td v-for="(item, j) in cols" :key="item.prop" :class="[item.class]">
                   <div class="stability-table-cell" :class="getCellClass(item)">
                     <slot name="content" :row="row" :column="item" :content="getContent(row, item)" :rowIndex="expandKey(i)">
                       <div class="text-content"
@@ -112,7 +113,7 @@
 
                 <td sticky="right"
                     v-for="(item, j) in head.right"
-                    :class="{'sticky-right': j === 0}"
+                    :class="[{'sticky-right': j === 0}, item.class]"
                     :key="item.prop"
                     :style="getSticky(item, head.right.length - 1 - j)">
                   <div class="stability-table-cell" :class="getCellClass(item)">
@@ -184,7 +185,7 @@ export default {
       // 记录扩展行展开
       expand: null,
 
-      // 记录数展开记录
+      // 记录树展开记录
       tree: {},
 
       virtualScrollX: null,
@@ -269,9 +270,10 @@ export default {
     },
 
     // 更新行数据
-    updateRows () {
+    updateRows (data) {
+      const dataSource = data || this.dataSource
       this.$refs.scroll.setScrollTop(0)
-      this.allRows = this.dataSource.slice(0)
+      this.allRows = dataSource.slice(0)
       this.setVirtual({
         rowsNum: this.allRows.length
       })
