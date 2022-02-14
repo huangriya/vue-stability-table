@@ -175,10 +175,8 @@ class Virtual {
     // 一屏的个数
     const screenNum = Math.floor(this.opts.viewWidth / itemSize)
 
-    // 小于3屏数据时不开启虚拟滚动
-    if (this.opts.colsNum <= screenNum * 3) {
-      return null
-    }
+    // 总列数小于30列数据时不开启虚拟滚动
+    if (this.opts.colsNum <= 30) return null
 
     let start, end, isLast
 

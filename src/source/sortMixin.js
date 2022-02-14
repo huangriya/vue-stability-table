@@ -6,6 +6,12 @@ export default {
     }
   },
   methods: {
+    getActSortClass (item) {
+      if (this.sortMark && item.sortable && item.prop === this.activeSort) {
+        return true
+      }
+      return false
+    },
     sortChange (item) {
       if (item.sortable) {
         if (!this.activeSort || !this.sortOrders || this.sortOrders === 'desc' || item.prop !== this.activeSort) {
@@ -38,6 +44,8 @@ export default {
           
           this.tree = {}
           this.allRows = allRows
+
+          this.$refs.scroll.setScrollTop(0)
 
           // 重新获取行数据
           if (this.virtualScrollY) {

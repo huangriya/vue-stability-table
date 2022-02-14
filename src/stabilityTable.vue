@@ -22,7 +22,7 @@
             <tr>
               <th sticky="left"
                   v-for="(item, i) in head.left" :key="item.prop"
-                  :class="[{'sticky-left': i === head.left.length - 1}, item.class]" 
+                  :class="[{'sticky-left': i === head.left.length - 1}, item.class, {'act-sort': getActSortClass(item)}]" 
                   :style="getSticky(item, i)">
                   <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
                     <div class="text-content" :title="item.label">
@@ -36,7 +36,7 @@
               <td v-if="virtualScrollX" :style="{'width': virtualScrollX.left + 'px'}"></td>
               <th v-for="item in cols"
                   :key="item.prop"
-                  :class="[item.class]"
+                  :class="[item.class, {'act-sort': getActSortClass(item)}]"
                   :style="getThStyle(item)">
                 <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
                   <div class="text-content" :title="item.label">
@@ -51,7 +51,7 @@
 
               <th sticky="right"
                   v-for="(item, i) in head.right"
-                  :class="[{'sticky-right': i === 0}, item.class]"
+                  :class="[{'sticky-right': i === 0}, item.class, {'act-sort': getActSortClass(item)}]"
                   :key="item.prop"
                   :style="getSticky(item, head.right.length - 1 - i)">
                   <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
@@ -70,7 +70,7 @@
               <tr class="stability-wrapper-table-tbody-tr" :key="row[rowKey]" @click="trClick(row, expandKey(i))">
                 <td sticky="left"
                     v-for="(item, j) in head.left"
-                    :class="[{'sticky-left': j === head.left.length - 1}, item.class]"
+                    :class="[{'sticky-left': j === head.left.length - 1}, item.class, {'act-sort': getActSortClass(item)}]"
                     :key="item.prop"
                     :style="getSticky(item, j)">
                     <div class="stability-table-cell cell-flex" :class="getCellClass(item)">
@@ -92,7 +92,7 @@
                     </div>
                 </td>
                 <td v-if="virtualScrollX"></td>
-                <td v-for="(item, j) in cols" :key="item.prop" :class="[item.class]">
+                <td v-for="(item, j) in cols" :key="item.prop" :class="[item.class, {'act-sort': getActSortClass(item)}]">
                   <div class="stability-table-cell" :class="getCellClass(item)">
                     <slot name="content" :row="row" :column="item" :content="getContent(row, item)" :rowIndex="expandKey(i)">
                       <div class="text-content"
@@ -113,7 +113,7 @@
 
                 <td sticky="right"
                     v-for="(item, j) in head.right"
-                    :class="[{'sticky-right': j === 0}, item.class]"
+                    :class="[{'sticky-right': j === 0}, item.class, {'act-sort': getActSortClass(item)}]"
                     :key="item.prop"
                     :style="getSticky(item, head.right.length - 1 - j)">
                   <div class="stability-table-cell" :class="getCellClass(item)">
@@ -467,8 +467,12 @@ export default {
     
     scrollUpdated (v) {
       if (this.virtual) {
-        this.virtual.opts.viewHeight = v.scrollHeight
-        this.virtual.opts.viewWidth = v.scrollWidth
+        if (v.scrollHeight) {
+          this.virtual.opts.viewHeight = v.scrollHeight
+        }
+        if (v.scrollWidth) {
+          this.virtual.opts.viewWidth = v.scrollWidth
+        }
       }
       this.dragSize.height = v.scrollContentHeight > v.scrollHeight ? v.scrollHeight : v.scrollContentHeight
       if (v.scrollBarX) {
@@ -655,7 +659,7 @@ export default {
           font-weight: 400;
           height: 40px;
           min-height: 40px;
-          &:hover {
+          &:hover, &.act-sort {
             background-color: #eff3fd;
           }
           .resize-handle {
@@ -670,7 +674,6 @@ export default {
               background-color: #688ff4;
             }
           }
-          
         }
       }
       .stability-wrapper-table-tbody-tr {
@@ -678,6 +681,9 @@ export default {
         td {
           border-bottom: 1px solid #ededed;
           font-size: 12px;
+          &.act-sort {
+            background-color: #eff3fd;
+          }
         }
         &:hover {
           td {

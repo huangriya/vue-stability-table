@@ -104,5 +104,16 @@ export default {
   scrollDisplayType: {
     type: String,
     default: 'show'
+  },
+
+  // 是否显示排序背景色
+  sortMark: {
+    type: Boolean,
+    default: true
+  },
+
+  // 表格行的类名
+  rowClassName: {
+    type: Function
   }
 }

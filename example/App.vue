@@ -165,7 +165,7 @@ export default {
       })
 
       let rows = []
-      for (let i = 0; i < 500000; i++) {
+      for (let i = 0; i < 5000; i++) {
         rows.push({
           id: i,
           table: 'asfasdasfasdfsffsf',

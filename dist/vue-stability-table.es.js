@@ -11,7 +11,7 @@ const columns = {
   maxWidth: null,
   formatter: null,
   sortable: false,
-  colClass: ""
+  class: ""
 };
 var props$1 = {
   columns: {
@@ -40,10 +40,6 @@ var props$1 = {
     type: [Boolean, Object],
     default: false
   },
-  rowClassName: {
-    type: String,
-    default: ""
-  },
   rowKey: {
     type: String,
     default: "id"
@@ -51,10 +47,6 @@ var props$1 = {
   rowSize: {
     type: Number,
     default: 40
-  },
-  expandSize: {
-    type: Number,
-    default: null
   },
   colSize: {
     type: Number,
@@ -71,6 +63,13 @@ var props$1 = {
   scrollDisplayType: {
     type: String,
     default: "show"
+  },
+  sortMark: {
+    type: Boolean,
+    default: true
+  },
+  rowClassName: {
+    type: Function
   }
 };
 var props = {
@@ -507,83 +506,6 @@ class Virtual {
       };
     }
   }
-  getRowsRegionBar(scrollTop, expand) {
-    if (this.opts.rowsNum <= 50)
-      return null;
-    let start, end;
-    let expandDistance = {
-      top: 0,
-      middle: 0,
-      bottom: 0
-    };
-    const rowsNum = this.opts.rowsNum;
-    const rowSize = this.opts.rowSize;
-    const viewHeight = this.opts.viewHeight;
-    const pageSize = 30;
-    const overflowHeight = viewHeight / 2;
-    if (scrollTop < rowSize * 2) {
-      start = 0;
-      end = pageSize;
-    } else if (scrollTop - this.scrollTop > overflowHeight) {
-      let topDistance = this.topDistance;
-      for (let i = this.rowStart; i < rowsNum; i++) {
-        topDistance += rowSize + (expand && expand[i] || 0);
-        if (topDistance >= scrollTop) {
-          start = i - Math.floor(pageSize / 3);
-          end = start + pageSize;
-          break;
-        }
-      }
-    } else if (this.scrollTop - scrollTop > overflowHeight) {
-      let topDistance = this.topDistance + overflowHeight;
-      if (topDistance >= scrollTop) {
-        start = this.rowStart - Math.floor(pageSize / 3);
-        end = start + pageSize;
-      }
-      if (this.topDistance - scrollTop > 100) {
-        let topDistance2 = this.topDistance;
-        for (let i = this.rowStart; i > pageSize; i--) {
-          topDistance2 -= rowSize + (expand && expand[i] || 0);
-          if (topDistance2 <= scrollTop) {
-            start = i - Math.floor(pageSize / 3);
-            end = start + pageSize;
-            break;
-          }
-        }
-      }
-    }
-    if (expand) {
-      for (const key in expand) {
-        if (key < start) {
-          expandDistance.top += expand[key];
-        } else if (key > end) {
-          expandDistance.bottom += expand[key];
-        }
-      }
-    }
-    if (end > rowsNum) {
-      end = rowsNum;
-    }
-    if (start < 0) {
-      start = 0;
-    }
-    if (end < pageSize) {
-      end = pageSize;
-    }
-    if (start !== void 0 && end !== void 0 && (start !== this.rowStart || end !== this.rowEnd)) {
-      this.scrollTop = scrollTop;
-      this.rowStart = start;
-      this.rowEnd = end;
-      this.topDistance = this.rowStart * this.opts.rowSize + expandDistance.top;
-      this.bottomDistance = (rowsNum - this.rowEnd) * this.opts.rowSize + expandDistance.bottom;
-      return {
-        start: this.rowStart,
-        end: this.rowEnd,
-        top: this.topDistance,
-        bottom: this.bottomDistance
-      };
-    }
-  }
   upRowsRegion() {
     const rowsNum = this.opts.rowsNum;
     this.topDistance = this.rowStart * this.opts.rowSize;
@@ -602,9 +524,8 @@ class Virtual {
   getColRegion(scrollLeft) {
     const itemSize = this.opts.colSize;
     const screenNum = Math.floor(this.opts.viewWidth / itemSize);
-    if (this.opts.colsNum <= screenNum * 3) {
+    if (this.opts.colsNum <= 30)
       return null;
-    }
     let start, end, isLast;
     if (scrollLeft < this.opts.viewWidth) {
       start = 0;
@@ -700,6 +621,12 @@ var sortMixin = {
     };
   },
   methods: {
+    getActSortClass(item) {
+      if (this.sortMark && item.sortable && item.prop === this.activeSort) {
+        return true;
+      }
+      return false;
+    },
     sortChange(item) {
       if (item.sortable) {
         if (!this.activeSort || !this.sortOrders || this.sortOrders === "desc" || item.prop !== this.activeSort) {
@@ -723,6 +650,9 @@ var sortMixin = {
               return a > b ? -1 : 1;
             });
           }
+          this.tree = {};
+          this.allRows = allRows;
+          this.$refs.scroll.setScrollTop(0);
           if (this.virtualScrollY) {
             this.virtualScrollY = this.virtual.upRowsRegion(this.expand);
             this.rows = allRows.slice(this.virtualScrollY.start, this.virtualScrollY.end);
@@ -899,7 +829,7 @@ var render = function() {
     "not-sticky-left": _vm.stickyType === "left",
     "not-sticky-right": _vm.stickyType === "right"
   }, attrs: { "cellpadding": "0", "cellspacing": "0" }, on: { "click": _vm.tableClcik } }, [_c("thead", { ref: "tabelHead", staticClass: "stability-wrapper-table-head" }, [_c("tr", [_vm._l(_vm.head.left, function(item, i) {
-    return _c("th", { key: item.prop, class: { "sticky-left": i === _vm.head.left.length - 1 }, style: _vm.getSticky(item, i), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
+    return _c("th", { key: item.prop, class: [{ "sticky-left": i === _vm.head.left.length - 1 }, item.class, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, i), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
       return _vm.sortChange(item);
     } } }, [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._t("headerText", function() {
       return [_vm._v(_vm._s(item.label))];
@@ -907,7 +837,7 @@ var render = function() {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
   }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.left + "px" } }) : _vm._e(), _vm._l(_vm.cols, function(item) {
-    return _c("th", { key: item.prop, style: _vm.getThStyle(item) }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
+    return _c("th", { key: item.prop, class: [item.class, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getThStyle(item) }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
       return _vm.sortChange(item);
     } } }, [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._t("headerText", function() {
       return [_vm._v(_vm._s(item.label))];
@@ -915,7 +845,7 @@ var render = function() {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
   }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.right + "px" } }) : _vm._e(), _vm._l(_vm.head.right, function(item, i) {
-    return _c("th", { key: item.prop, class: { "sticky-right": i === 0 }, style: _vm.getSticky(item, _vm.head.right.length - 1 - i), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
+    return _c("th", { key: item.prop, class: [{ "sticky-right": i === 0 }, item.class, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, _vm.head.right.length - 1 - i), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
       return _vm.sortChange(item);
     } } }, [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._t("headerText", function() {
       return [_vm._v(_vm._s(item.label))];
@@ -926,17 +856,17 @@ var render = function() {
     return [_c("tr", { key: row[_vm.rowKey], staticClass: "stability-wrapper-table-tbody-tr", on: { "click": function($event) {
       _vm.trClick(row, _vm.expandKey(i));
     } } }, [_vm._l(_vm.head.left, function(item, j) {
-      return _c("td", { key: item.prop, class: { "sticky-left": j === _vm.head.left.length - 1 }, style: _vm.getSticky(item, j), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item) }, [j === _vm.openIconColumn ? _c("span", { style: { width: row._treeIndex_ * 17 + "px" } }) : _vm._e(), j === _vm.openIconColumn && row[_vm.childrenColumnName] && row[_vm.childrenColumnName].length ? _c("open-icon", { attrs: { "active": _vm.tree[row[_vm.rowKey]] }, nativeOn: { "click": function($event) {
+      return _c("td", { key: item.prop, class: [{ "sticky-left": j === _vm.head.left.length - 1 }, item.class, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, j), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item) }, [j === _vm.openIconColumn ? _c("span", { style: { width: row._treeIndex_ * 17 + "px" } }) : _vm._e(), j === _vm.openIconColumn && row[_vm.childrenColumnName] && row[_vm.childrenColumnName].length ? _c("open-icon", { attrs: { "active": _vm.tree[row[_vm.rowKey]] }, nativeOn: { "click": function($event) {
         _vm.treeOpen(row, _vm.expandKey(i));
       } } }) : _vm._e(), _vm._t("content", function() {
         return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": j } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
       }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
     }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.cols, function(item, j) {
-      return _c("td", { key: item.prop }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
+      return _c("td", { key: item.prop, class: [item.class, { "act-sort": _vm.getActSortClass(item) }] }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
         return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": _vm.head.left.length + j + (_vm.virtualScrollX ? _vm.virtualScrollX.start : 0) } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
       }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
     }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.head.right, function(item, j) {
-      return _c("td", { key: item.prop, class: { "sticky-right": j === 0 }, style: _vm.getSticky(item, _vm.head.right.length - 1 - j), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
+      return _c("td", { key: item.prop, class: [{ "sticky-right": j === 0 }, item.class, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, _vm.head.right.length - 1 - j), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
         return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": _vm.head.left.length + _vm.head.middle.length + j } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
       }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
     })], 2), _vm.expand && _vm.expand[_vm.expandKey(i)] ? _c("tr", { key: row[_vm.rowKey] + "expand", ref: row[_vm.rowKey] + "expand", refInFor: true }, [_c("td", { attrs: { "colspan": _vm.columns.length } }, [_c("div", { staticClass: "tr-expand", style: { width: _vm.$refs.scroll.scrollWidth + "px" } }, [_vm._t("expand", null, { "row": row, "rowIndex": _vm.expandKey(i) })], 2)])]) : _vm._e()];
@@ -1020,9 +950,10 @@ const __vue2_script = {
       this.setHead(columns2);
       this.setCols(0);
     },
-    updateRows() {
+    updateRows(data) {
+      const dataSource = data || this.dataSource;
       this.$refs.scroll.setScrollTop(0);
-      this.allRows = this.dataSource.slice(0);
+      this.allRows = dataSource.slice(0);
       this.setVirtual({
         rowsNum: this.allRows.length
       });
@@ -1172,8 +1103,12 @@ const __vue2_script = {
     },
     scrollUpdated(v) {
       if (this.virtual) {
-        this.virtual.opts.viewHeight = v.scrollHeight;
-        this.virtual.opts.viewWidth = v.scrollWidth;
+        if (v.scrollHeight) {
+          this.virtual.opts.viewHeight = v.scrollHeight;
+        }
+        if (v.scrollWidth) {
+          this.virtual.opts.viewWidth = v.scrollWidth;
+        }
       }
       this.dragSize.height = v.scrollContentHeight > v.scrollHeight ? v.scrollHeight : v.scrollContentHeight;
       if (v.scrollBarX) {
