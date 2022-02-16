@@ -25,9 +25,11 @@
                   :class="[{'sticky-left': i === head.left.length - 1}, item.className, {'act-sort': getActSortClass(item)}]" 
                   :style="getSticky(item, i)">
                   <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
-                    <div class="text-content" :title="item.label">
-                      <slot name="headerText" :column="item">{{item.label}}</slot>
-                    </div>
+                    <slot name="header" :column="item">
+                      <div class="text-content" :title="item.label">
+                        {{item.label}}
+                      </div>
+                    </slot>
                     <Sort v-if="item.sortable" :sort="item.prop" :sortOrders="sortOrders" :activeSort="activeSort"/>
                   </div>
                   <span @mousedown="dragSizeDown($event, item)" 
@@ -39,9 +41,11 @@
                   :class="[item.className, {'act-sort': getActSortClass(item)}]"
                   :style="getThStyle(item)">
                 <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
-                  <div class="text-content" :title="item.label">
-                    <slot name="headerText" :column="item">{{item.label}}</slot>
-                  </div>
+                  <slot name="header" :column="item">
+                    <div class="text-content" :title="item.label">
+                      {{item.label}}
+                    </div>
+                  </slot>
                   <Sort v-if="item.sortable" :sort="item.prop" :sortOrders="sortOrders" :activeSort="activeSort"/>
                 </div>
                 <span class="resize-handle"
@@ -55,9 +59,11 @@
                   :key="item.prop"
                   :style="getSticky(item, head.right.length - 1 - i)">
                   <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
-                    <div class="text-content" :title="item.label">
-                      <slot name="headerText" :column="item">{{item.label}}</slot>
-                    </div>
+                    <slot name="header" :column="item">
+                      <div class="text-content" :title="item.label">
+                        {{item.label}}
+                      </div>
+                    </slot>
                     <Sort v-if="item.sortable" :sort="item.prop" :sortOrders="sortOrders" :activeSort="activeSort" />
                   </div>
                   <span class="resize-handle" @mousedown="dragSizeDown($event, item)" v-if="item.resizable && item.width > 0"></span>
@@ -437,6 +443,7 @@ export default {
         this.isUpdateRows = false
       }
       this.scrollTop = v.top
+      this.$emit('scroll', ...arguments)
     },
 
     trClick (row, rowIndex) {
@@ -486,6 +493,7 @@ export default {
 
     scrollHit (v) {
       this.stickyType = v
+      this.$emit('scroll-hit', ...arguments)
     },
 
     // 展开子行

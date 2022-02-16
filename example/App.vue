@@ -38,7 +38,7 @@ export default {
       prop: 'table',
       fixed: true,
       width: 120,
-      className: 'addd',
+      className: 'table-1',
       sortable: true,
       resizable: true
     }, {

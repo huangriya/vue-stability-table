@@ -6,6 +6,116 @@
 
 # Simple usage
 
+通过npm 或者 yarn安装
+
+``` 
+yarn add vue-stability-table
+
+npm i vue-stability-table
+```
+
+引入
+
+``` js
+import 'vue-stability-table/dist/style.css'
+import vueStabilityTable from 'vue-stability-table'
+```
+
+``` vue
+<template>
+  <div style="height:432px;width:800px;">
+    <stabilityTable ref="stabiltyTable" :columns="columns" :dataSource="rows"></stabilityTable>
+  </div>
+</template>
+
+<script>
+import 'vue-stability-table/dist/style.css'
+import vueStabilityTable from 'vue-stability-table'
+
+export default {
+  components: { vueStabilityTable },
+  data () {
+    return {
+      columns: [],
+      rows: []
+    }
+  },
+  created () {
+    let columns = [{
+      label: '固定列asadfasdfas',
+      prop: 'table',
+      fixed: true,
+      width: 120,
+      className: 'table-1',
+      sortable: true,
+      resizable: true
+    }, {
+      label: '固定列2',
+      prop: 'fixedTable2',
+      fixed: true,
+      width: 120,
+      resizable: true
+    }]
+    
+    for (let i = 0; i <= 300; i++) {
+      columns.push({
+        label: '表头' + i,
+        prop: 'table' + i,
+        subProp: 'subTable' + i,
+        resizable: true,
+        sortable: true,
+        formatter: function(str) {
+          return str + 'bba'
+        }
+      })
+    }
+
+    columns.push({
+      label: '固定尾1',
+      prop: 'tableLast',
+      fixed: true,
+      width: 120,
+      resizable: true,
+      sortable: true,
+      align: 'center'
+    },{
+      label: '固定尾2',
+      prop: 'tableLast2',
+      fixed: true,
+      width: 120,
+      resizable: true,
+      sortable: true,
+      align: 'right'
+    })
+
+    let rows = []
+    for (let i = 0; i < 1000; i++) {
+      let obj = {
+        id: i,
+        table: '是否' + i,
+        fixedTable2: '收到',
+        table1: i,
+        table2: i,
+        subTable1: '20%',
+        children: []
+      }
+      for (let j = 0; j < 7; j++) {
+        obj.children.push({
+          id: i + 'ch' + j,
+          fixedTable2: '2021111' + j,
+          table1: '爱爱上爱上爱上爱上上',
+          table2: 'asfasdasfasdfsffsfasfasdasfasdfsffsf'
+        })
+      }
+      rows.push(obj)
+    }
+    this.columns = columns
+    this.rows = rows
+  }
+}
+</script>
+```
+
 # Api
 
 ## table props
@@ -44,19 +154,23 @@ className |  String | - | 本列样式类名
 
 name|回调参数|说明
 --|:--:|:--
-scroll | function(scrollValue: Object, $event) | 滚动会触发该事件
-scroll-hit | function(type: String, scrollValue: Object) | 滚动条触底、触顶、触左、触右后出发该事件
-updated | function(scrollValue: Object) | 容器更新后会触发该事件
 on-expand-change | function(row: Object, expandState: Boolean) | 拓展行展开收起
 cell-text-click | function(columns: Object, row: Object, event: Element) | 点击单元格文本
 resize-column | function(columns: Object) | 拖拽列宽改变后
 on-sort-change | function(colProp: String, sortOrders: String, columns: Object) | 自定义排序，监听该事件后，系统默认排序会失效
+scroll | function(scrollValue: Object, $event) | 滚动会触发该事件
+scroll-hit | function(type: String, scrollValue: Object) | 滚动条触底、触顶、触左、触右后出发该事件
 # 方法
 
 name|参数|说明
 --|:--|:--
-updated() | - | element改变后，<br>可以通过该方法手动更新滚动容器状态
-setScrollLeft(number) | - | 改变滚动条左边滚动距离
-setScrollTop(number) | - | 改变滚动条上边滚动距离
+updateColumns(columns) | - | 手动更新列数据(比直接改变props的columns性能高25%左右)
+updateRows(rows) | - | 手动更新行数据(比直接改变props的dataSource性能高25%左右)
+doLayout() | - | 表格重新布局
 
 # solt
+name|说明
+--|:--
+content | 行单元格内容 参数: {row, column, content, rowIndex}
+header | 表头内容 参数: { column }
+expand | 自定义扩展行内容  参数:{ row }
