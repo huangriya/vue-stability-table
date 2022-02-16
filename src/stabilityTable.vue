@@ -22,7 +22,7 @@
             <tr>
               <th sticky="left"
                   v-for="(item, i) in head.left" :key="item.prop"
-                  :class="[{'sticky-left': i === head.left.length - 1}, item.class, {'act-sort': getActSortClass(item)}]" 
+                  :class="[{'sticky-left': i === head.left.length - 1}, item.className, {'act-sort': getActSortClass(item)}]" 
                   :style="getSticky(item, i)">
                   <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
                     <div class="text-content" :title="item.label">
@@ -36,7 +36,7 @@
               <td v-if="virtualScrollX" :style="{'width': virtualScrollX.left + 'px'}"></td>
               <th v-for="item in cols"
                   :key="item.prop"
-                  :class="[item.class, {'act-sort': getActSortClass(item)}]"
+                  :class="[item.className, {'act-sort': getActSortClass(item)}]"
                   :style="getThStyle(item)">
                 <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
                   <div class="text-content" :title="item.label">
@@ -51,7 +51,7 @@
 
               <th sticky="right"
                   v-for="(item, i) in head.right"
-                  :class="[{'sticky-right': i === 0}, item.class, {'act-sort': getActSortClass(item)}]"
+                  :class="[{'sticky-right': i === 0}, item.className, {'act-sort': getActSortClass(item)}]"
                   :key="item.prop"
                   :style="getSticky(item, head.right.length - 1 - i)">
                   <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
@@ -70,7 +70,7 @@
               <tr class="stability-wrapper-table-tbody-tr" :key="row[rowKey]" @click="trClick(row, expandKey(i))">
                 <td sticky="left"
                     v-for="(item, j) in head.left"
-                    :class="[{'sticky-left': j === head.left.length - 1}, item.class, {'act-sort': getActSortClass(item)}]"
+                    :class="[{'sticky-left': j === head.left.length - 1}, item.className, {'act-sort': getActSortClass(item)}]"
                     :key="item.prop"
                     :style="getSticky(item, j)">
                     <div class="stability-table-cell cell-flex" :class="getCellClass(item)">
@@ -92,7 +92,7 @@
                     </div>
                 </td>
                 <td v-if="virtualScrollX"></td>
-                <td v-for="(item, j) in cols" :key="item.prop" :class="[item.class, {'act-sort': getActSortClass(item)}]">
+                <td v-for="(item, j) in cols" :key="item.prop" :class="[item.className, {'act-sort': getActSortClass(item)}]">
                   <div class="stability-table-cell" :class="getCellClass(item)">
                     <slot name="content" :row="row" :column="item" :content="getContent(row, item)" :rowIndex="expandKey(i)">
                       <div class="text-content"
@@ -113,7 +113,7 @@
 
                 <td sticky="right"
                     v-for="(item, j) in head.right"
-                    :class="[{'sticky-right': j === 0}, item.class, {'act-sort': getActSortClass(item)}]"
+                    :class="[{'sticky-right': j === 0}, item.className, {'act-sort': getActSortClass(item)}]"
                     :key="item.prop"
                     :style="getSticky(item, head.right.length - 1 - j)">
                   <div class="stability-table-cell" :class="getCellClass(item)">
@@ -562,7 +562,6 @@ export default {
     }
     .stability-wrapper-table {
       text-align: left;
-      display: table;
       width: 100%;
       table-layout: fixed;
       border-collapse: separate;

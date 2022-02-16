@@ -38,6 +38,7 @@ export default {
       prop: 'table',
       fixed: true,
       width: 120,
+      className: 'addd',
       sortable: true,
       resizable: true
     }, {
@@ -48,7 +49,7 @@ export default {
       resizable: true
     }]
     
-    for (let i = 0; i <= 3; i++) {
+    for (let i = 0; i <= 300; i++) {
       columns.push({
         label: '表头' + i,
         prop: 'table' + i,

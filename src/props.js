@@ -26,7 +26,7 @@ export const columns = {
   sortable: false,
 
   // 每一列的样式class
-  class: ''
+  className: ''
 }
 
 export default {

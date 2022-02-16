@@ -68,6 +68,7 @@ export default {
 
         this.dragSize.colItem.width = width
         window.removeEventListener('mousemove', this.dragSizeMove)
+        this.$emit('resize-column', this.dragSize.colItem)
       }
     },
     
