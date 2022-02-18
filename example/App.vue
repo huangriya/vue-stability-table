@@ -21,9 +21,6 @@
 <script>
 import stabilityTable from '../src/stabilityTable.vue'
 
-// import vueAgileScrollbar from 'vue-agile-scrollbar'
-// import 'vue-agile-scrollbar/dist/style.css'
-
 export default {
   components: { stabilityTable },
   data () {

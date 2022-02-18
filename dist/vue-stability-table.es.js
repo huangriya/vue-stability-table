@@ -11,7 +11,7 @@ const columns = {
   maxWidth: null,
   formatter: null,
   sortable: false,
-  class: ""
+  className: ""
 };
 var props$1 = {
   columns: {
@@ -126,9 +126,9 @@ var render$3 = function() {
     "not-user-select": _vm.scrollBarX.clientX || _vm.scrollBarY.clientY,
     "scrollbar-hover": _vm.displayType === "hover",
     "scrollbar-hide": _vm.displayType === "hide"
-  } }, [_c("div", { ref: "scroll", staticClass: "agile-scroll-content", on: { "scroll": _vm.onScroll } }, [_c("div", { ref: "scrollContent", staticClass: "agile-scroll-wrapper" }, [_vm._t("default")], 2)]), _vm.scrollBarX.show ? _c("div", { staticClass: "agile-scroll-bar-x", class: { act: _vm.scrollBarX.clientX || _vm.scrollBarY.clientY }, style: { left: _vm.scrollBarX.left + "px", width: _vm.scrollBarX.width + "px", bottom: _vm.scrollBarX.bottom }, on: { "mousedown": function($event) {
+  } }, [_c("div", { ref: "scroll", staticClass: "agile-scroll-content", on: { "scroll": _vm.onScroll } }, [_c("div", { ref: "scrollContent", staticClass: "agile-scroll-wrapper" }, [_vm._t("default")], 2)]), _vm.scrollBarX.show ? _c("div", { staticClass: "agile-scroll-bar-x", class: { act: _vm.scrollBarX.clientX }, style: { left: _vm.scrollBarX.left + "px", width: _vm.scrollBarX.width + "px", bottom: _vm.scrollBarX.bottom }, on: { "mousedown": function($event) {
     return _vm.scrollBarDown($event, "scrollBarX");
-  } } }) : _vm._e(), _vm.scrollBarY.show ? _c("div", { staticClass: "agile-scroll-bar-y", class: { act: _vm.scrollBarY.clientY || _vm.scrollBarX.clientX }, style: { top: _vm.scrollBarY.top + "px", height: _vm.scrollBarY.height + "px" }, on: { "mousedown": function($event) {
+  } } }) : _vm._e(), _vm.scrollBarY.show ? _c("div", { staticClass: "agile-scroll-bar-y", class: { act: _vm.scrollBarY.clientY }, style: { top: _vm.scrollBarY.top + "px", height: _vm.scrollBarY.height + "px" }, on: { "mousedown": function($event) {
     return _vm.scrollBarDown($event, "scrollBarY");
   } } }) : _vm._e()]);
 };
@@ -213,15 +213,17 @@ const __vue2_script$3 = {
   watch: {
     offsetLeft() {
       this.setScrollBarLeft();
+      this.initScrollBar();
     },
     offsetRight() {
-      this.setScrollBarLeft();
+      this.initScrollBar();
     },
     offsetTop() {
       this.setScrollBarTop();
+      this.initScrollBar();
     },
     offsetBottom() {
-      this.setScrollBarTop();
+      this.initScrollBar();
     }
   },
   mounted() {
@@ -380,7 +382,7 @@ const __vue2_script$3 = {
       window.addEventListener("mouseup", this.scrollBarUp);
     },
     removeDragEvent() {
-      window.removeEventListener("mouseup", this.scrollBarUp);
+      window.removeEventListener("mouseup", this.addDragEvent);
     },
     setScrollLeft(number) {
       if (number >= 0 || this.scrollLeft >= 0) {
@@ -600,6 +602,7 @@ var dragMixin = {
         }
         this.dragSize.colItem.width = width;
         window.removeEventListener("mousemove", this.dragSizeMove);
+        this.$emit("resize-column", this.dragSize.colItem);
       }
     },
     addDragEvent() {
@@ -829,44 +832,44 @@ var render = function() {
     "not-sticky-left": _vm.stickyType === "left",
     "not-sticky-right": _vm.stickyType === "right"
   }, attrs: { "cellpadding": "0", "cellspacing": "0" }, on: { "click": _vm.tableClcik } }, [_c("thead", { ref: "tabelHead", staticClass: "stability-wrapper-table-head" }, [_c("tr", [_vm._l(_vm.head.left, function(item, i) {
-    return _c("th", { key: item.prop, class: [{ "sticky-left": i === _vm.head.left.length - 1 }, item.class, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, i), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
+    return _c("th", { key: item.prop, class: [{ "sticky-left": i === _vm.head.left.length - 1 }, item.className, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, i), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
       return _vm.sortChange(item);
-    } } }, [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._t("headerText", function() {
-      return [_vm._v(_vm._s(item.label))];
-    }, { "column": item })], 2), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 1), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
+    } } }, [_vm._t("header", function() {
+      return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(" " + _vm._s(item.label) + " ")])];
+    }, { "column": item }), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
   }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.left + "px" } }) : _vm._e(), _vm._l(_vm.cols, function(item) {
-    return _c("th", { key: item.prop, class: [item.class, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getThStyle(item) }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
+    return _c("th", { key: item.prop, class: [item.className, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getThStyle(item) }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
       return _vm.sortChange(item);
-    } } }, [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._t("headerText", function() {
-      return [_vm._v(_vm._s(item.label))];
-    }, { "column": item })], 2), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 1), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
+    } } }, [_vm._t("header", function() {
+      return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(" " + _vm._s(item.label) + " ")])];
+    }, { "column": item }), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
   }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.right + "px" } }) : _vm._e(), _vm._l(_vm.head.right, function(item, i) {
-    return _c("th", { key: item.prop, class: [{ "sticky-right": i === 0 }, item.class, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, _vm.head.right.length - 1 - i), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
+    return _c("th", { key: item.prop, class: [{ "sticky-right": i === 0 }, item.className, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, _vm.head.right.length - 1 - i), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
       return _vm.sortChange(item);
-    } } }, [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._t("headerText", function() {
-      return [_vm._v(_vm._s(item.label))];
-    }, { "column": item })], 2), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 1), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
+    } } }, [_vm._t("header", function() {
+      return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(" " + _vm._s(item.label) + " ")])];
+    }, { "column": item }), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
   })], 2)]), _c("tbody", [_vm.virtualScrollY ? _c("tr", { ref: "virtualTop", style: { height: _vm.virtualScrollY.top + "px" } }) : _vm._e(), _vm._l(_vm.rows, function(row, i) {
     return [_c("tr", { key: row[_vm.rowKey], staticClass: "stability-wrapper-table-tbody-tr", on: { "click": function($event) {
       _vm.trClick(row, _vm.expandKey(i));
     } } }, [_vm._l(_vm.head.left, function(item, j) {
-      return _c("td", { key: item.prop, class: [{ "sticky-left": j === _vm.head.left.length - 1 }, item.class, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, j), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item) }, [j === _vm.openIconColumn ? _c("span", { style: { width: row._treeIndex_ * 17 + "px" } }) : _vm._e(), j === _vm.openIconColumn && row[_vm.childrenColumnName] && row[_vm.childrenColumnName].length ? _c("open-icon", { attrs: { "active": _vm.tree[row[_vm.rowKey]] }, nativeOn: { "click": function($event) {
+      return _c("td", { key: item.prop, class: [{ "sticky-left": j === _vm.head.left.length - 1 }, item.className, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, j), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item) }, [j === _vm.openIconColumn ? _c("span", { style: { width: row._treeIndex_ * 17 + "px" } }) : _vm._e(), j === _vm.openIconColumn && row[_vm.childrenColumnName] && row[_vm.childrenColumnName].length ? _c("open-icon", { attrs: { "active": _vm.tree[row[_vm.rowKey]] }, nativeOn: { "click": function($event) {
         _vm.treeOpen(row, _vm.expandKey(i));
       } } }) : _vm._e(), _vm._t("content", function() {
         return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": j } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
       }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
     }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.cols, function(item, j) {
-      return _c("td", { key: item.prop, class: [item.class, { "act-sort": _vm.getActSortClass(item) }] }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
+      return _c("td", { key: item.prop, class: [item.className, { "act-sort": _vm.getActSortClass(item) }] }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
         return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": _vm.head.left.length + j + (_vm.virtualScrollX ? _vm.virtualScrollX.start : 0) } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
       }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
     }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.head.right, function(item, j) {
-      return _c("td", { key: item.prop, class: [{ "sticky-right": j === 0 }, item.class, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, _vm.head.right.length - 1 - j), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
+      return _c("td", { key: item.prop, class: [{ "sticky-right": j === 0 }, item.className, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, _vm.head.right.length - 1 - j), attrs: { "sticky": "right" } }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
         return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": _vm.head.left.length + _vm.head.middle.length + j } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
       }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
     })], 2), _vm.expand && _vm.expand[_vm.expandKey(i)] ? _c("tr", { key: row[_vm.rowKey] + "expand", ref: row[_vm.rowKey] + "expand", refInFor: true }, [_c("td", { attrs: { "colspan": _vm.columns.length } }, [_c("div", { staticClass: "tr-expand", style: { width: _vm.$refs.scroll.scrollWidth + "px" } }, [_vm._t("expand", null, { "row": row, "rowIndex": _vm.expandKey(i) })], 2)])]) : _vm._e()];
@@ -1076,6 +1079,7 @@ const __vue2_script = {
         this.isUpdateRows = false;
       }
       this.scrollTop = v.top;
+      this.$emit("scroll", ...arguments);
     },
     trClick(row, rowIndex) {
       if (this.$scopedSlots.expand) {
@@ -1121,6 +1125,7 @@ const __vue2_script = {
     },
     scrollHit(v) {
       this.stickyType = v;
+      this.$emit("scroll-hit", ...arguments);
     },
     treeOpen(row, rowIndex) {
       let rowKey = row[this.rowKey];

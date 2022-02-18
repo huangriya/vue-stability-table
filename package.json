@@ -1,6 +1,6 @@
 {
   "name": "vue-stability-table",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Stability table for large amount of data display",
   "author": {
     "name": "huangriya",
@@ -23,7 +23,7 @@
   "dependencies": {
     "event-agent": "^1.0.1",
     "lodash": "^4.17.21",
-    "vue-agile-scrollbar": "^1.0.17"
+    "vue-agile-scrollbar": "^1.0.19"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^1.10.2",
