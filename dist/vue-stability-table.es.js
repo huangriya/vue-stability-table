@@ -70,6 +70,15 @@ var props$1 = {
   },
   rowClassName: {
     type: Function
+  },
+  rowSelection: {
+    type: Object,
+    default() {
+      return {
+        selected: [],
+        disabled: []
+      };
+    }
   }
 };
 var props = {
@@ -118,7 +127,7 @@ var props = {
     default: 1
   }
 };
-var render$3 = function() {
+var render$4 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
@@ -132,7 +141,7 @@ var render$3 = function() {
     return _vm.scrollBarDown($event, "scrollBarY");
   } } }) : _vm._e()]);
 };
-var staticRenderFns$3 = [];
+var staticRenderFns$4 = [];
 function normalizeComponent$1(scriptExports, render2, staticRenderFns2, functionalTemplate, injectStyles, scopeId, moduleIdentifier, shadowMode) {
   var options = typeof scriptExports === "function" ? scriptExports.options : scriptExports;
   if (render2) {
@@ -184,7 +193,7 @@ function normalizeComponent$1(scriptExports, render2, staticRenderFns2, function
     options
   };
 }
-const __vue2_script$3 = {
+const __vue2_script$4 = {
   name: "vueAgileScrollBar",
   props,
   data() {
@@ -402,15 +411,15 @@ const __vue2_script$3 = {
     this.removeDragEvent();
   }
 };
-const __cssModules$3 = {};
-var __component__$3 = /* @__PURE__ */ normalizeComponent$1(__vue2_script$3, render$3, staticRenderFns$3, false, __vue2_injectStyles$3, null, null, null);
-function __vue2_injectStyles$3(context) {
-  for (let o in __cssModules$3) {
-    this[o] = __cssModules$3[o];
+const __cssModules$4 = {};
+var __component__$4 = /* @__PURE__ */ normalizeComponent$1(__vue2_script$4, render$4, staticRenderFns$4, false, __vue2_injectStyles$4, null, null, null);
+function __vue2_injectStyles$4(context) {
+  for (let o in __cssModules$4) {
+    this[o] = __cssModules$4[o];
   }
 }
 var vueAgileScrollbar = /* @__PURE__ */ function() {
-  return __component__$3.exports;
+  return __component__$4.exports;
 }();
 var style = "";
 class Virtual {
@@ -667,13 +676,13 @@ var sortMixin = {
     }
   }
 };
-var render$2 = function() {
+var render$3 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
   return _c("span", { staticClass: "stability-table-column-sorter" }, [_c("span", { staticClass: "stability-table-column-sorter-inner" }, [_c("span", { staticClass: "stability-table-column-sorter-up", class: { "sort-act": _vm.sort && _vm.activeSort && _vm.sort === _vm.activeSort && _vm.sortOrders === "asc" }, attrs: { "role": "img" } }, [_c("svg", { attrs: { "focusable": "false", "width": "11", "height": "11", "fill": "currentColor", "aria-hidden": "true", "viewBox": "0 0 1024 1024" } }, [_c("path", { attrs: { "d": "M858.9 689L530.5 308.2c-9.4-10.9-27.5-10.9-37 0L165.1 689c-12.2 14.2-1.2 35 18.5 35h656.8c19.7 0 30.7-20.8 18.5-35z" } })])]), _c("span", { staticClass: "stability-table-column-sorter-down", class: { "sort-act": _vm.sort && _vm.activeSort && _vm.sort === _vm.activeSort && _vm.sortOrders === "desc" }, attrs: { "role": "img" } }, [_c("svg", { attrs: { "focusable": "false", "width": "11", "height": "11", "fill": "currentColor", "aria-hidden": "true", "viewBox": "0 0 1024 1024" } }, [_c("path", { attrs: { "d": "M840.4 300H183.6c-19.7 0-30.7 20.8-18.5 35l328.4 380.8c9.4 10.9 27.5 10.9 37 0L858.9 335c12.2-14.2 1.2-35-18.5-35z" } })])])])]);
 };
-var staticRenderFns$2 = [];
+var staticRenderFns$3 = [];
 var sort_vue_vue_type_style_index_0_lang = "";
 function normalizeComponent(scriptExports, render2, staticRenderFns2, functionalTemplate, injectStyles, scopeId, moduleIdentifier, shadowMode) {
   var options = typeof scriptExports === "function" ? scriptExports.options : scriptExports;
@@ -726,7 +735,7 @@ function normalizeComponent(scriptExports, render2, staticRenderFns2, functional
     options
   };
 }
-const __vue2_script$2 = {
+const __vue2_script$3 = {
   props: {
     sort: {
       type: String,
@@ -746,25 +755,25 @@ const __vue2_script$2 = {
   },
   methods: {}
 };
-const __cssModules$2 = {};
-var __component__$2 = /* @__PURE__ */ normalizeComponent(__vue2_script$2, render$2, staticRenderFns$2, false, __vue2_injectStyles$2, null, null, null);
-function __vue2_injectStyles$2(context) {
-  for (let o in __cssModules$2) {
-    this[o] = __cssModules$2[o];
+const __cssModules$3 = {};
+var __component__$3 = /* @__PURE__ */ normalizeComponent(__vue2_script$3, render$3, staticRenderFns$3, false, __vue2_injectStyles$3, null, null, null);
+function __vue2_injectStyles$3(context) {
+  for (let o in __cssModules$3) {
+    this[o] = __cssModules$3[o];
   }
 }
 var Sort = /* @__PURE__ */ function() {
-  return __component__$2.exports;
+  return __component__$3.exports;
 }();
-var render$1 = function() {
+var render$2 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
   return _c("i", { staticClass: "stability-table-open-icon", class: { "rotate-down": _vm.active } }, [_c("svg", { attrs: { "viewBox": "64 64 896 896", "data-icon": "right", "width": "10", "height": "10", "fill": "currentColor", "aria-hidden": "true", "focusable": "false" } }, [_c("path", { attrs: { "d": "M765.7 486.8L314.9 134.7A7.97 7.97 0 0 0 302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 0 0 0-50.4z" } })])]);
 };
-var staticRenderFns$1 = [];
+var staticRenderFns$2 = [];
 var openIcon_vue_vue_type_style_index_0_lang = "";
-const __vue2_script$1 = {
+const __vue2_script$2 = {
   props: {
     active: {
       type: Boolean,
@@ -772,15 +781,15 @@ const __vue2_script$1 = {
     }
   }
 };
-const __cssModules$1 = {};
-var __component__$1 = /* @__PURE__ */ normalizeComponent(__vue2_script$1, render$1, staticRenderFns$1, false, __vue2_injectStyles$1, null, null, null);
-function __vue2_injectStyles$1(context) {
-  for (let o in __cssModules$1) {
-    this[o] = __cssModules$1[o];
+const __cssModules$2 = {};
+var __component__$2 = /* @__PURE__ */ normalizeComponent(__vue2_script$2, render$2, staticRenderFns$2, false, __vue2_injectStyles$2, null, null, null);
+function __vue2_injectStyles$2(context) {
+  for (let o in __cssModules$2) {
+    this[o] = __cssModules$2[o];
   }
 }
 var openIcon = /* @__PURE__ */ function() {
-  return __component__$1.exports;
+  return __component__$2.exports;
 }();
 const getAttrKeys = function(attrs) {
   let dataAttr = {};
@@ -823,6 +832,53 @@ const eventAgent = (evt, func) => {
   }
   isFind && func && func(el, attr);
 };
+var render$1 = function() {
+  var _vm = this;
+  var _h = _vm.$createElement;
+  var _c = _vm._self._c || _h;
+  return _c("span", { staticClass: "stability-table-checkbox", class: {
+    "stability-table-checkbox-checked": _vm.value,
+    "surely-table-checkbox-disabled": _vm.disabled,
+    "surely-table-checkbox-indeterminate": !_vm.value && _vm.indeterminate
+  }, on: { "click": function($event) {
+    return _vm.change();
+  } } }, [_c("input", { staticClass: "stability-table-checkbox-input", attrs: { "type": "checkbox", "disabled": _vm.disabled }, domProps: { "checked": _vm.value } }), _c("span", { staticClass: "stability-table-checkbox-inner" })]);
+};
+var staticRenderFns$1 = [];
+var checkbox_vue_vue_type_style_index_0_lang = "";
+const __vue2_script$1 = {
+  props: {
+    value: {
+      type: [Boolean, Number],
+      default: false
+    },
+    disabled: {
+      type: [Boolean, Number]
+    },
+    indeterminate: {
+      type: Boolean
+    }
+  },
+  created() {
+  },
+  methods: {
+    change() {
+      if (!this.disabled) {
+        this.$emit("change", !this.value);
+      }
+    }
+  }
+};
+const __cssModules$1 = {};
+var __component__$1 = /* @__PURE__ */ normalizeComponent(__vue2_script$1, render$1, staticRenderFns$1, false, __vue2_injectStyles$1, null, null, null);
+function __vue2_injectStyles$1(context) {
+  for (let o in __cssModules$1) {
+    this[o] = __cssModules$1[o];
+  }
+}
+var checkbox = /* @__PURE__ */ function() {
+  return __component__$1.exports;
+}();
 var render = function() {
   var _vm = this;
   var _h = _vm.$createElement;
@@ -834,7 +890,7 @@ var render = function() {
   }, attrs: { "cellpadding": "0", "cellspacing": "0" }, on: { "click": _vm.tableClcik } }, [_c("thead", { ref: "tabelHead", staticClass: "stability-wrapper-table-head" }, [_c("tr", [_vm._l(_vm.head.left, function(item, i) {
     return _c("th", { key: item.prop, class: [{ "sticky-left": i === _vm.head.left.length - 1 }, item.className, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, i), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
       return _vm.sortChange(item);
-    } } }, [_vm._t("header", function() {
+    } } }, [item.type === "selection" ? _c("checkbox", { attrs: { "value": _vm.selectAll, "indeterminate": _vm.indeterminate }, on: { "change": _vm.selectAllChange } }) : _vm._t("header", function() {
       return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(" " + _vm._s(item.label) + " ")])];
     }, { "column": item }), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
       return _vm.dragSizeDown($event, item);
@@ -842,7 +898,7 @@ var render = function() {
   }), _vm.virtualScrollX ? _c("td", { style: { "width": _vm.virtualScrollX.left + "px" } }) : _vm._e(), _vm._l(_vm.cols, function(item) {
     return _c("th", { key: item.prop, class: [item.className, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getThStyle(item) }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item).concat([{ "sortable-column": item.sortable }]), on: { "click": function($event) {
       return _vm.sortChange(item);
-    } } }, [_vm._t("header", function() {
+    } } }, [item.type === "selection" ? _c("checkbox", { attrs: { "value": _vm.selectAll }, on: { "change": _vm.selectAllChange } }) : _vm._t("header", function() {
       return [_c("div", { staticClass: "text-content", attrs: { "title": item.label } }, [_vm._v(" " + _vm._s(item.label) + " ")])];
     }, { "column": item }), item.sortable ? _c("Sort", { attrs: { "sort": item.prop, "sortOrders": _vm.sortOrders, "activeSort": _vm.activeSort } }) : _vm._e()], 2), item.resizable && item.width > 0 ? _c("span", { staticClass: "resize-handle", on: { "mousedown": function($event) {
       return _vm.dragSizeDown($event, item);
@@ -856,16 +912,20 @@ var render = function() {
       return _vm.dragSizeDown($event, item);
     } } }) : _vm._e()]);
   })], 2)]), _c("tbody", [_vm.virtualScrollY ? _c("tr", { ref: "virtualTop", style: { height: _vm.virtualScrollY.top + "px" } }) : _vm._e(), _vm._l(_vm.rows, function(row, i) {
-    return [_c("tr", { key: row[_vm.rowKey], staticClass: "stability-wrapper-table-tbody-tr", on: { "click": function($event) {
+    return [_c("tr", { key: row[_vm.rowKey], staticClass: "stability-wrapper-table-tbody-tr", class: { "table-children-row": row._treeIndex_ }, on: { "click": function($event) {
       _vm.trClick(row, _vm.expandKey(i));
     } } }, [_vm._l(_vm.head.left, function(item, j) {
-      return _c("td", { key: item.prop, class: [{ "sticky-left": j === _vm.head.left.length - 1 }, item.className, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, j), attrs: { "sticky": "left" } }, [_c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item) }, [j === _vm.openIconColumn ? _c("span", { style: { width: row._treeIndex_ * 17 + "px" } }) : _vm._e(), j === _vm.openIconColumn && row[_vm.childrenColumnName] && row[_vm.childrenColumnName].length ? _c("open-icon", { attrs: { "active": _vm.tree[row[_vm.rowKey]] }, nativeOn: { "click": function($event) {
+      return _c("td", { key: item.prop, class: [{ "sticky-left": j === _vm.head.left.length - 1 }, item.className, { "act-sort": _vm.getActSortClass(item) }], style: _vm.getSticky(item, j), attrs: { "sticky": "left" } }, [item.type === "selection" ? _c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item) }, [!row._treeIndex_ ? _c("checkbox", { attrs: { "value": _vm.selectedMap[row[_vm.rowKey]], "disabled": _vm.selectedDsbMap[row[_vm.rowKey]] }, on: { "change": function($event) {
+        return _vm.selectedChange($event, row);
+      } } }) : _vm._e()], 1) : _c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item) }, [j === _vm.openIconColumn ? _c("span", { style: { width: row._treeIndex_ * _vm.indentSize + "px" } }) : _vm._e(), j === _vm.openIconColumn && row[_vm.childrenColumnName] && row[_vm.childrenColumnName].length ? _c("open-icon", { attrs: { "active": _vm.tree[row[_vm.rowKey]] }, nativeOn: { "click": function($event) {
         _vm.treeOpen(row, _vm.expandKey(i));
       } } }) : _vm._e(), _vm._t("content", function() {
         return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": j } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
       }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
     }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.cols, function(item, j) {
-      return _c("td", { key: item.prop, class: [item.className, { "act-sort": _vm.getActSortClass(item) }] }, [_c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
+      return _c("td", { key: item.prop, class: [item.className, { "act-sort": _vm.getActSortClass(item) }] }, [item.type === "selection" ? _c("div", { staticClass: "stability-table-cell cell-flex", class: _vm.getCellClass(item) }, [_c("checkbox", { attrs: { "value": _vm.selectedMap[row[_vm.rowKey]], "disabled": _vm.selectedDsbMap[row[_vm.rowKey]] }, on: { "change": function($event) {
+        return _vm.selectedChange($event, row);
+      } } })], 1) : _c("div", { staticClass: "stability-table-cell", class: _vm.getCellClass(item) }, [_vm._t("content", function() {
         return [_c("div", { staticClass: "text-content", attrs: { "title": _vm.getContent(row, item), "event-agent": "click", "row-index": _vm.expandKey(i), "col-index": _vm.head.left.length + j + (_vm.virtualScrollX ? _vm.virtualScrollX.start : 0) } }, [_vm._v(" " + _vm._s(_vm.getContent(row, item)) + " "), item.subProp ? [_c("br"), _c("span", { staticClass: "sub-text-content" }, [_vm._v(_vm._s(row[item.subProp]))])] : _vm._e()], 2)];
       }, { "row": row, "column": item, "content": _vm.getContent(row, item), "rowIndex": _vm.expandKey(i) })], 2)]);
     }), _vm.virtualScrollX ? _c("td") : _vm._e(), _vm._l(_vm.head.right, function(item, j) {
@@ -878,7 +938,7 @@ var render = function() {
 var staticRenderFns = [];
 var stabilityTable_vue_vue_type_style_index_0_lang = "";
 const __vue2_script = {
-  components: { vueAgileScrollbar, Sort, openIcon },
+  components: { vueAgileScrollbar, Sort, openIcon, checkbox },
   props: props$1,
   mixins: [dragMixin, sortMixin],
   data() {
@@ -896,7 +956,10 @@ const __vue2_script = {
       virtualScrollX: null,
       virtualScrollY: null,
       offsetTop: 0,
-      stickyType: ""
+      stickyType: "",
+      selectAll: false,
+      selectedMap: {},
+      selectedDsbMap: {}
     };
   },
   watch: {
@@ -921,6 +984,9 @@ const __vue2_script = {
         num += o.width > 0 ? o.width : columns.minWidth;
       });
       return num;
+    },
+    indeterminate() {
+      return false;
     }
   },
   created() {
@@ -936,6 +1002,7 @@ const __vue2_script = {
       this.setHead();
       this.allRows = this.dataSource.slice(0);
       this.setVirtual();
+      this.selectInit();
       this.setCols(0);
       this.setRows(0);
     },
@@ -1056,17 +1123,24 @@ const __vue2_script = {
       return classArr;
     },
     getSticky(item, colIndex) {
-      let colItem = item;
+      let sticky = {
+        left: 0,
+        right: 0
+      };
       if (item.fixed === "left") {
-        colItem = colIndex ? this.head.left[colIndex - 1] : item;
+        for (let i = 0; i < colIndex; i++) {
+          sticky.left += this.head.left[i].width || columns.width;
+        }
       }
       if (item.fixed === "right") {
-        colItem = colIndex ? this.head.right[colIndex] : item;
+        for (let i = 0; i < colIndex; i++) {
+          sticky.right += this.head.right[i].width || columns.width;
+        }
       }
       const width = item.width > 0 ? item.width : columns.width;
       let stylesObj = {
         width: width + "px",
-        [item.fixed]: colIndex * (colItem.width || columns.width) + "px"
+        [item.fixed]: sticky[item.fixed] + "px"
       };
       return stylesObj;
     },
@@ -1162,6 +1236,50 @@ const __vue2_script = {
           this.$emit("cell-text-click", this.columns[colIndex], this.allRows[rowIndex], e);
         });
       }
+    },
+    selectInit() {
+      if (this.rowSelection && this.rowSelection.selected) {
+        this.rowSelection.selected.forEach((o) => {
+          this.$set(this.selectedMap, o, 1);
+        });
+      }
+      if (this.rowSelection && this.rowSelection.disabled) {
+        this.rowSelection.disabled.forEach((o) => {
+          this.$set(this.selectedDsbMap, o, 1);
+        });
+      }
+    },
+    selectAllChange(v) {
+      this.selectAll = v;
+      this.allRows.forEach((o) => {
+        if (!this.selectedDsbMap[o[this.rowKey]]) {
+          this.$set(this.selectedMap, o[this.rowKey], v ? 1 : 0);
+        }
+      });
+      this.$emit("selection-change", {
+        checked: v,
+        rows: this.getSelectionRows()
+      });
+    },
+    selectedChange(v, item) {
+      this.$set(this.selectedMap, item[this.rowKey], v ? 1 : 0);
+      this.$emit("selection-change", {
+        checked: v,
+        row: item,
+        rows: this.getSelectionRows()
+      });
+    },
+    getSelectionRows() {
+      return this.allRows.filter((o) => {
+        if (this.selectedMap[o[this.rowKey]]) {
+          return o;
+        }
+      });
+    },
+    setSelectionRows(rowKey = []) {
+      rowKey.forEach((o) => {
+        this.$set(this.selectedMap, o, 1);
+      });
     }
   }
 };

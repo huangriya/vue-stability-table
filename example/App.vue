@@ -5,7 +5,7 @@
     <section>
       <h3>基本用法 <button @click="setData">重新载入数据</button> <button @click="setColumn">改变列数据</button> <button @click="$refs.stabiltyTable.empty()">清空数据</button></h3>
       <div style="height:432px;width:800px;">
-        <stabilityTable ref="stabiltyTable" :columns="columns" :dataSource="rows" :expandSize="100" :openIconColumn="1">
+        <stabilityTable ref="stabiltyTable" :columns="columns" :dataSource="rows" :expandSize="100" :openIconColumn="1" @selection-change="selectionChange" :rowSelection="{disabled: [1, 2], selected: [1, 3]}">
           <template slot="content" slot-scope="{row, rowIndex}">
             {{row.id}}
           </template>
@@ -31,6 +31,10 @@ export default {
   },
   created () {
     let columns = [{
+      type: 'selection',
+      width: 40,
+      fixed: true
+    }, {
       label: '固定列asadfasdfas',
       prop: 'table',
       fixed: true,
@@ -46,7 +50,7 @@ export default {
       resizable: true
     }]
     
-    for (let i = 0; i <= 300; i++) {
+    for (let i = 0; i <= 20; i++) {
       columns.push({
         label: '表头' + i,
         prop: 'table' + i,
@@ -67,7 +71,7 @@ export default {
       resizable: true,
       sortable: true,
       align: 'center'
-    },{
+    }, {
       label: '固定尾2',
       prop: 'tableLast2',
       fixed: true,
@@ -186,6 +190,10 @@ export default {
 
     sortChange () {
       
+    },
+
+    selectionChange (v) {
+      console.log(v)
     },
 
     cellTextClick (col, row) {

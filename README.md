@@ -131,7 +131,8 @@ rowSize| Number | 40 | 单行平均高度，虚拟滚动时用到
 colSize| Number | 100 | 单列平均宽度，虚拟滚动时用到
 openIconColumn| Number | 0 | 展开图标显示列
 scrollDisplayType | String | show | 滚动条展示类型
-sortMark | Boolean | 1 | 是否显示排序背景色
+sortMark | Boolean | 1 | 是否显示排序背景色,
+rowSelection | Object | {selected: [], disabled: []} | 让选中配置
 
 
 ## columns props
@@ -160,6 +161,7 @@ resize-column | function(columns: Object) | 拖拽列宽改变后
 on-sort-change | function(colProp: String, sortOrders: String, columns: Object) | 自定义排序，监听该事件后，系统默认排序会失效
 scroll | function(scrollValue: Object, $event) | 滚动会触发该事件
 scroll-hit | function(type: String, scrollValue: Object) | 滚动条触底、触顶、触左、触右后出发该事件
+selection-change | function({row: Object, rows: Array, checked: Boolean}) | 选中行后触发
 # 方法
 
 name|参数|说明
@@ -167,6 +169,8 @@ name|参数|说明
 updateColumns(columns) | - | 手动更新列数据(比直接改变props的columns性能高25%左右)
 updateRows(rows) | - | 手动更新行数据(比直接改变props的dataSource性能高25%左右)
 doLayout() | - | 表格重新布局
+getSelectionRows() | - | 获取选中行
+setSelectionRows(rowsKey:Array) | - | 设置选中行
 
 # solt
 name|说明

@@ -25,7 +25,8 @@
                   :class="[{'sticky-left': i === head.left.length - 1}, item.className, {'act-sort': getActSortClass(item)}]" 
                   :style="getSticky(item, i)">
                   <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
-                    <slot name="header" :column="item">
+                    <checkbox :value="selectAll" :indeterminate="indeterminate" @change="selectAllChange" v-if="item.type === 'selection'" />
+                    <slot name="header" :column="item" v-else>
                       <div class="text-content" :title="item.label">
                         {{item.label}}
                       </div>
@@ -41,7 +42,8 @@
                   :class="[item.className, {'act-sort': getActSortClass(item)}]"
                   :style="getThStyle(item)">
                 <div class="stability-table-cell cell-flex" :class="[...getCellClass(item), {'sortable-column': item.sortable}]" @click="sortChange(item)">
-                  <slot name="header" :column="item">
+                  <checkbox :value="selectAll" @change="selectAllChange" v-if="item.type === 'selection'" />
+                  <slot name="header" :column="item" v-else>
                     <div class="text-content" :title="item.label">
                       {{item.label}}
                     </div>
@@ -73,14 +75,21 @@
           <tbody>
             <tr v-if="virtualScrollY" ref="virtualTop" :style="{height: virtualScrollY.top + 'px'}"></tr>
             <template v-for="(row, i) in rows">
-              <tr class="stability-wrapper-table-tbody-tr" :key="row[rowKey]" @click="trClick(row, expandKey(i))">
+              <tr class="stability-wrapper-table-tbody-tr"
+                  :class="{'table-children-row': row._treeIndex_}"
+                  :key="row[rowKey]"
+                  @click="trClick(row, expandKey(i))">
                 <td sticky="left"
                     v-for="(item, j) in head.left"
                     :class="[{'sticky-left': j === head.left.length - 1}, item.className, {'act-sort': getActSortClass(item)}]"
                     :key="item.prop"
                     :style="getSticky(item, j)">
-                    <div class="stability-table-cell cell-flex" :class="getCellClass(item)">
-                      <span v-if="j === openIconColumn" :style="{width: row._treeIndex_ * 17 + 'px'}"></span>
+                    <div class="stability-table-cell cell-flex" :class="getCellClass(item)" 
+                        v-if="item.type === 'selection'">
+                      <checkbox v-if="!row._treeIndex_ " :value="selectedMap[row[rowKey]]" :disabled="selectedDsbMap[row[rowKey]]" @change="selectedChange($event, row)" />
+                    </div>
+                    <div class="stability-table-cell cell-flex" :class="getCellClass(item)" v-else>
+                      <span v-if="j === openIconColumn" :style="{width: row._treeIndex_ * indentSize + 'px'}"></span>
                       <open-icon :active="tree[row[rowKey]]" v-if="j === openIconColumn && row[childrenColumnName] && row[childrenColumnName].length" @click.native="treeOpen(row, expandKey(i))" />
                       <slot name="content" :row="row" :column="item" :content="getContent(row, item)" :rowIndex="expandKey(i)">
                         <div class="text-content"
@@ -99,7 +108,10 @@
                 </td>
                 <td v-if="virtualScrollX"></td>
                 <td v-for="(item, j) in cols" :key="item.prop" :class="[item.className, {'act-sort': getActSortClass(item)}]">
-                  <div class="stability-table-cell" :class="getCellClass(item)">
+                  <div class="stability-table-cell cell-flex" :class="getCellClass(item)" v-if="item.type === 'selection'">
+                    <checkbox :value="selectedMap[row[rowKey]]" :disabled="selectedDsbMap[row[rowKey]]" @change="selectedChange($event, row)" />
+                  </div>
+                  <div class="stability-table-cell" :class="getCellClass(item)" v-else>
                     <slot name="content" :row="row" :column="item" :content="getContent(row, item)" :rowIndex="expandKey(i)">
                       <div class="text-content"
                           :title="getContent(row, item)"
@@ -168,9 +180,10 @@ import sortMixin from './source/sortMixin'
 import Sort from './source/sort.vue'
 import openIcon from './source/openIcon.vue'
 import { eventAgent } from 'event-agent'
+import checkbox from './source/checkbox.vue'
 
 export default {
-  components: { vueAgileScrollbar, Sort, openIcon },
+  components: { vueAgileScrollbar, Sort, openIcon, checkbox },
   props: props,
   mixins: [dragMixin, sortMixin],
   data () {
@@ -201,7 +214,12 @@ export default {
       offsetTop: 0,
 
       // 固定列类型
-      stickyType: ''
+      stickyType: '',
+
+      // 选中
+      selectAll: false,
+      selectedMap: {},
+      selectedDsbMap: {}
     }
   },
 
@@ -232,6 +250,10 @@ export default {
         num += (o.width > 0) ? o.width : columns.minWidth
       })
       return num
+    },
+
+    indeterminate () {    
+      return false
     }
   },
 
@@ -254,7 +276,10 @@ export default {
       this.allRows = this.dataSource.slice(0)
 
       this.setVirtual()
-      
+
+      // 初始化多选
+      this.selectInit()
+
       this.setCols(0)
       this.setRows(0)
     },
@@ -310,6 +335,7 @@ export default {
     setHead (cols) {
 
       const columns = cols || this.columns
+
       let left = [], middle = [], right = [], columnsLen = columns.length, start = null, end = null
 
       // 获取两边的固定列
@@ -412,21 +438,28 @@ export default {
 
     getSticky (item, colIndex) {
 
-      let colItem = item
+      let sticky = {
+        left: 0,
+        right: 0
+      }
 
       if (item.fixed === 'left') {
-        colItem = colIndex ? this.head.left[colIndex - 1] : item
+        for (let i = 0; i < colIndex; i++) {
+          sticky.left += (this.head.left[i].width || columns.width)
+        }
       }
 
       if (item.fixed === 'right') {
-        colItem = colIndex ? this.head.right[colIndex] : item
+        for (let i = 0; i < colIndex; i++) {
+          sticky.right += this.head.right[i].width || columns.width
+        }
       }
 
       const width = item.width > 0 ? item.width : columns.width
-
+      
       let stylesObj = {
         width: width + 'px',
-        [item.fixed]: colIndex * (colItem.width || columns.width) + 'px'
+        [item.fixed]: sticky[item.fixed] + 'px'
       }
 
       return stylesObj
@@ -541,6 +574,65 @@ export default {
           this.$emit('cell-text-click', this.columns[colIndex], this.allRows[rowIndex], e)
         })
       }
+    },
+
+    // 初始化选中配置
+    selectInit () {
+
+      // 默认选中
+      if (this.rowSelection && this.rowSelection.selected) {
+        this.rowSelection.selected.forEach(o => {
+          this.$set(this.selectedMap, o, 1)
+        })
+      }
+      
+      // 默认置灰
+      if (this.rowSelection && this.rowSelection.disabled) {
+        this.rowSelection.disabled.forEach(o => {
+          this.$set(this.selectedDsbMap, o, 1)
+        })
+      }
+      
+    },
+
+    // 全选
+    selectAllChange (v) {
+      this.selectAll = v
+      this.allRows.forEach(o => {
+        if (!this.selectedDsbMap[o[this.rowKey]]) {
+          this.$set(this.selectedMap, o[this.rowKey], v ? 1 : 0)
+        }
+      })
+      this.$emit('selection-change', {
+        checked: v,
+        rows: this.getSelectionRows()
+      })
+    },
+
+    // 选中
+    selectedChange (v, item) {
+      this.$set(this.selectedMap, item[this.rowKey], v ? 1 : 0)
+      this.$emit('selection-change', {
+        checked: v,
+        row: item,
+        rows: this.getSelectionRows()
+      })
+    },
+
+    // 获取选中row
+    getSelectionRows () {
+      return this.allRows.filter(o => {
+        if (this.selectedMap[o[this.rowKey]]) {
+          return o
+        }
+      })
+    },
+
+    // 设置keys
+    setSelectionRows (rowKey = []) {
+      rowKey.forEach(o => {
+        this.$set(this.selectedMap, o, 1)
+      })
     }
   }
 }

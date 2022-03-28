@@ -41,6 +41,7 @@ export default {
     type: Array
   },
 
+  // 设置粘性头部和滚动条
   sticky: {
     type: Boolean,
     default: false
@@ -115,5 +116,16 @@ export default {
   // 表格行的类名
   rowClassName: {
     type: Function
+  },
+
+  // 行选择配置
+  rowSelection: {
+    type: Object,
+    default () {
+      return {
+        selected: [],
+        disabled: []
+      }
+    }
   }
 }
